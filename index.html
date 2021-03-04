@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="dist/xvue.js"></script>
+</head>
+<body>    
+    <div id="app">
+        <span>看看会不会报错鸭</span>
+        <!-- <span>测试{{name}}</span>                  -->
+    </div>
+    <script>            
+        let vm = new XVue({
+            el: '#app',    
+            template: '<div>我的名字是</div>',     
+            data: {
+                    name:'小圆子',
+                    age: 15,
+                    // vvmodel: '处理v-model',
+                    info:{
+                        job: 'coder',
+                        hobby: 'cloth'
+                    },
+                    // arr: [1,3,4, [0,34,4],44],
+                    // list: ["step1","step2","step3"]
+                    // list: [{"val_01": '01', "index": '01'},{"val_02": '02', "index": '02'}]
+                },
+            beforeCreate(){
+                console.log("beforeCreate");                
+            },
+            mounted(){                
+                console.log("**********",this.info.job);
+                this.info.job = " teacher !!"
+                console.log("**更新后*",this.info.job);
+                // this.filterFn()
+
+                console.log("-------------------")
+                this.name = "beautiful yuan"
+                console.log("updated name: ", this.name);
+            },
+            methods:{
+                filterFn(){
+                    console.log("冬姐-");
+                }            
+            }    
+        })
+    </script>
+</body>
+</html>
