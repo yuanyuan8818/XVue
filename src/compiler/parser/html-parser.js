@@ -15,11 +15,13 @@ const doctype = /^<!DOCTYPE [^>]+>/i
 const comment = /^<!\--/
 
 export const isPlainTextElement = makeMap('script,style,textarea', true)
-export function parseHTML(html){
+export function parseHTML(html,options){
     const stack = []
     const expectHTML = options.expectHTML
     let index = 0
     let last,lastTag
+    
+    console.log("会从这里开始吗=========",html);
     while(html){
 
         if(!lastTag || !isPlainTextElement(lastTag)){
@@ -44,12 +46,21 @@ export function parseHTML(html){
                 * 开始标签要求： 1、 匹配到 <tag>  (如果是 <tag 则不行)
                 *               2\ <tag attribute>
                */
-                const startTagMatch = parseStartTag()
+                const startTagMatch = parseStartTag()                
                 if(startTagMatch){
-                    handleStartTag(startTagMatch)
-
+                    handleStartTag(startTagMatch)                    
+                    continue                    
                 }
-                continue
+                           
+                // 结束标签
+                const endTagMatch = html.match(endTag)
+                if(endTagMatch){
+                    const curIndex = index                    
+                    advance(endTagMatch[0].length)                    
+                    parseEndTag(endTagMatch[1],curIndex,index)
+                    continue
+
+                }               
             }
 
             // =0 <2sfd3
@@ -75,7 +86,7 @@ export function parseHTML(html){
                 html = ''
             }
 
-            if(options.chars && text){
+            if(options.chars && text){                
                 options.chars(text)
             }
 
@@ -124,13 +135,14 @@ export function parseHTML(html){
                 attrs: [],
                 start: index
             }
-            advance(start[0].length)
+            advance(start[0].length) // 截取<div
             let end, attr
+
             // 没有匹配到 /> 和 > 情况下，一直匹配属性
             while( !( end = html.match(startTagClose)) && (attr = html.match(attribute)) ){                
                  advance(attr[0].length)
                  match.attrs.push(attr)
-            }
+            }            
             if(end){
                 /**
                  * <div/>  end = ['/>', '>']
@@ -138,7 +150,7 @@ export function parseHTML(html){
                 */
                match.unarySlash = end[1]   // undefined说明是非一元标签
                advance(end[0].length)
-               match.end = index  // 给match增加一个end属性
+               match.end = index  // 给match增加一个end属性                                          
                return match
             }
 
@@ -169,7 +181,7 @@ export function parseHTML(html){
         if(!unary){
             stack.push({
                 tag: tagName,
-                lowerCasedTag: tagName.toLowerCased,
+                lowerCasedTag: tagName.toLowerCase(),
                 attrs: attrs
             })
             lastTag = tagName
@@ -179,5 +191,53 @@ export function parseHTML(html){
             options.start(tagName, attrs, unary, match.start, match.end)
         }
 
+    }
+
+    // 解析结束标签
+    function parseEndTag(tagName,start,end){
+        let pos, lowerCasedTagName
+        if(start == null) start = index
+        if(end == null) end = index
+        
+        if(tagName){
+            lowerCasedTagName = tagName.toLowerCase()
+        }
+
+        //寻找当前解析的结束标签所对应的开始标签在stack栈中的位置
+        if(tagName){
+            for(pos = stack.length -1; pos > 0; pos--){
+                if(stack[pos].lowerCasedTag == lowerCasedTagName){
+                    break
+                }
+            }
+        }else{
+            pos = 0
+        }
+
+        if(pos >=0){
+            for(let i = stack.length -1; i >=pos; i--){
+                if(i > pos){
+                    options.warn(`tag < ${stack[i].tag} > has no matching end tag.`)
+                }
+                if(options.end){
+                    // options.end(stack[i].tag,start,end)
+                    options.end()
+                }
+            }
+            stack.length = pos
+            lastTag = pos && stack[pos -1].tag            
+        }else if(lowerCasedTagName == 'br'){
+            if(options.start){
+                options.start(tagName,[],false,start,end)
+            }
+        }else if(lowerCasedTagName === 'p'){
+            if(options.start){
+                options.start(tagName,[],false,start,end)
+            }
+            if(options.end){
+                // options.end(tagName,start,end)
+                options.end()
+            }
+        }
     }
 }

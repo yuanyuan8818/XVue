@@ -8,13 +8,15 @@
 </head>
 <body>    
     <div id="app">
-        <span>看看会不会报错鸭</span>
-        <!-- <span>测试{{name}}</span>                  -->
+        <h2>Let's Start XVue Test!</h2>        
+        <span>我的名字{{name}},请多多指教！</span>     
+        <div>
+            <span>万丈高楼平地起，辉煌只能靠自己~</span>
+        </div>           
     </div>
     <script>            
         let vm = new XVue({
-            el: '#app',    
-            template: '<div>我的名字是</div>',     
+            el: '#app',                   
             data: {
                     name:'小圆子',
                     age: 15,
@@ -30,15 +32,7 @@
             beforeCreate(){
                 console.log("beforeCreate");                
             },
-            mounted(){                
-                console.log("**********",this.info.job);
-                this.info.job = " teacher !!"
-                console.log("**更新后*",this.info.job);
-                // this.filterFn()
-
-                console.log("-------------------")
-                this.name = "beautiful yuan"
-                console.log("updated name: ", this.name);
+            mounted(){                                
             },
             methods:{
                 filterFn(){

@@ -26,6 +26,8 @@ export function mountComponent(vm,el,hydrating){
         // vm._render() 生成vnode
         // vm._update() 通过虚拟DOM的补丁算法来完成
         // vm._update(vm._render(),hydrating)
+        const vnode = vm._render()
+        vm._update(vnode,hydrating)
         console.log("执行渲染函数生成vnode， 将vnode转化为真实dom")
     }
 

@@ -2,14 +2,7 @@
 /* @flow */
 
 import { makeMap } from '@/shared/util'
-
-export const baseOptions = {
-    expectHTML: true,
-    modules,
-    isUnaryTag,
-    canBeLeftOpenTag
-}
-
+import modules from './modules/index'
 
 export const isUnaryTag = makeMap(
   'area,base,br,col,embed,frame,hr,img,input,isindex,keygen,' +
@@ -31,3 +24,13 @@ export const isNonPhrasingTag = makeMap(
   'optgroup,option,param,rp,rt,source,style,summary,tbody,td,tfoot,th,thead,' +
   'title,tr,track'
 )
+
+export const baseOptions = {
+    expectHTML: true,
+    modules,
+    isUnaryTag,
+    canBeLeftOpenTag
+}
+
+
+

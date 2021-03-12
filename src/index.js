@@ -32,7 +32,7 @@ XVue.prototype._init = function(options){
 
     initLifecycle(vm)
     initEvents(vm)    
-
+    initRender(vm) 
     // 调用生命周期的钩子函数    
     callHook(vm,'beforeCreate')
     //initInjections(vm) // resolve injections before data/props

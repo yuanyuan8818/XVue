@@ -2,14 +2,18 @@
 import {createCompilerCreator} from './create-compiler'
 import {baseOptions} from './options.js'
 import {parse} from './parser/index'
+import {optimize} from './optimizer'
+import {generate} from './codegen/index'
 
 // createCompier = _Creator(baseCompile)
 // creatCompilerCreator根据baseCompile创建出不同平台编译器
 export const createCompier = createCompilerCreator(function baseCompile(template,options){
-    // 抽象语法树
+    // 抽象语法树    
     const ast = parse(template.trim(), options)
+    console.log("经过词法分析和句法分析，生成ast",ast);
     optimize(ast,options)
     const code = generate(ast,options)
+    
     return {
         ast,
         render: code.render,        
