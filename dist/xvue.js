@@ -385,9 +385,6 @@
     */
 
     function h(tag, data = null, children = null, chldrenDeep) {
-      console.log("======1111====", tag);
-      console.log("======0000=====", data);
-      console.log("====999999====", children);
       let flags = null;
 
       if (typeof tag == 'string') {
@@ -444,7 +441,8 @@
         childFlags,
         el: null
       };
-      console.log("++++++++++", vnode); // return {
+      console.log("++++++++++", vnode);
+      return vnode; // return {
       //     _isVNode: true,
       //     flags,
       //     tag,
@@ -596,7 +594,6 @@
         this.value = value;
         this.dep = new Dep();
         def(value, '__ob__', this);
-        console.log("+============", value);
 
         if (Array.isArray(value)) {
           const augment = protoAugment;

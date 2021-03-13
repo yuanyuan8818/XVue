@@ -12,8 +12,7 @@ export class Observer{
     constructor(value){
         this.value = value        
         this.dep = new Dep()              
-        def(value,'__ob__',this)
-        console.log("+============",value);
+        def(value,'__ob__',this)        
         if(Array.isArray(value)){
             const augment = protoAugment
             augment(value,arrayMethods,arrayKeys)

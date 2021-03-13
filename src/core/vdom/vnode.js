@@ -57,10 +57,7 @@ ChildrenFlags.MULTIPLE_VNODES = ChildrenFlags.KEYED_VNODES | ChildrenFlags.NONE_
 /**
  * h函数即_c, 用于生产vnode
 */
-export function h(tag, data = null, children = null, chldrenDeep){    
-    console.log("======1111====",tag);
-    console.log("======0000=====",data);
-    console.log("====999999====",children);
+export function h(tag, data = null, children = null, chldrenDeep){        
     let flags = null         
     if(typeof tag=='string'){
         flags = tag == 'svg' ? VNodeFlags.ELEMENT_SVG: VNodeFlags.ELEMENT_HTML        
@@ -117,7 +114,7 @@ export function h(tag, data = null, children = null, chldrenDeep){
     }
 
     console.log("++++++++++",vnode);
-
+    return vnode
 
     // return {
     //     _isVNode: true,
