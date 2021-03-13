@@ -28,7 +28,7 @@
     function hasOwn(obj, key) {
       return hasOwnProperty.call(obj, key);
     }
-    function isObject(obj) {
+    function isObject$1(obj) {
       return obj !== null && typeof obj === 'object';
     }
     function isPlainObject(obj) {
@@ -259,7 +259,7 @@
         // 异步和同步都是通过调用run()进行更新变化
         const value = this.get();
 
-        if (value !== this.value || isObject(value)) {
+        if (value !== this.value || isObject$1(value)) {
           // set new value
           const oldValue = this.value;
           this.value = value;
@@ -318,7 +318,7 @@
 
         vm._update(vnode, hydrating);
 
-        console.log("执行渲染函数生成vnode， 将vnode转化为真实dom");
+        console.log("执行渲染函数生成vnode， 将vnode转化为真实dom", vnode);
       }; // 渲染函数的watcher
 
 
@@ -346,22 +346,159 @@
       };
     }
     const VNodeFlags = {
+      // html标签  0000 0001
       ELEMENT_HTML: 1,
+      // SVG 标签  0000 0010
       ELEMENT_SVG: 1 << 1,
+      // 普通有状态组件 0000 0100
       COMPONENT_STATEFUL_NORMAL: 1 << 2,
-      COMPONENT_STATEFUL_KEPT_ALIVE: 1 << 3,
-      COMPONENT_FUNCTIONAL: 1 << 4,
-      TEXT: 1 << 5
+      // 需要被keepAlive的有状态组件 0000 1000
+      COMPONENT_STATEFUL_SHOULD_KEEP_ALIVE: 1 << 3,
+      // 已经被keepAlive的有状态组件 0001 0000
+      COMPONENT_STATEFUL_KEPT_ALIVE: 1 << 4,
+      // 函数式组件 0010 0000
+      COMPONENT_FUNCTIONAL: 1 << 5,
+      //纯文本
+      TEXT: 1 << 6
+    }; //html 和 svg都是标签元素，都可以用ELMENT标识
+
+    VNodeFlags.ELEMENT = VNodeFlags.ELEMENT_HTML | VNodeFlags.ELEMENT_SVG; // 有状态组件： 普通有状态组件, 需要被keepAlive和已经被keptAlive的组件
+
+    VNodeFlags.COMPONENT_STATEFUL = VNodeFlags.COMPONENT_STATEFUL_NORMAL | VNodeFlags.COMPONENT_STATEFUL_SHOULD_KEEP_ALIVE | VNodeFlags.COMPONENT_STATEFUL_KEPT_ALIVE; // 有条件组件和函数式组件都是组件
+
+    VNodeFlags.COMPONENT = VNodeFlags.COMPONENT_STATEFUL | VNodeFlags.COMPONENT_FUNCTIONAL;
+    const ChildrenFlags = {
+      // 未知的children类型
+      UNKNOWN_CHILDREN: 0,
+      // 没有children
+      NO_CHILDREN: 1,
+      // children是单个VNode
+      SINGLE_VNODE: 1 << 1,
+      //children是拥有多个key的VNode
+      KEYED_VNODES: 1 << 2,
+      // children是没有key的VNode
+      NONE_KEYED_VNODES: 1 << 3
     };
+    ChildrenFlags.MULTIPLE_VNODES = ChildrenFlags.KEYED_VNODES | ChildrenFlags.NONE_KEYED_VNODES;
     /**
      * h函数即_c, 用于生产vnode
     */
 
     function h(tag, data = null, children = null, chldrenDeep) {
-      if (Array.isArray(data)) {
-        children = data;
-        data = null;
+      console.log("======1111====", tag);
+      console.log("======0000=====", data);
+      console.log("====999999====", children);
+      let flags = null;
+
+      if (typeof tag == 'string') {
+        flags = tag == 'svg' ? VNodeFlags.ELEMENT_SVG : VNodeFlags.ELEMENT_HTML;
+      } else if (tag == Fragment) {
+        flags = VNodeFlags.FRAGMENT;
+      } else {
+        // 兼容 Vue2 的对象式组件
+        if (tag !== null && typeof tag === 'object') {
+          flags = tag.functional ? VNodeFlags.COMPONENT_FUNCTIONAL // 函数式组件
+          : VNodeFlags.COMPONENT_STATEFUL_NORMAL; // 有状态组件
+        } else if (typeof tag === 'function') {
+          // Vue3 的类组件
+          flags = tag.prototype && tag.prototype.render ? VNodeFlags.COMPONENT_STATEFUL_NORMAL // 有状态组件
+          : VNodeFlags.COMPONENT_FUNCTIONAL; // 函数式组件
+        }
       }
+
+      let childFlags = null;
+
+      if (Array.isArray(children)) {
+        let {
+          length
+        } = children;
+
+        if (length == 0) {
+          // 没有children
+          childFlags = ChildrenFlags.NO_CHILDREN;
+        } else if (length == 1) {
+          // 单个子节点
+          childFlags = ChildrenFlags.SINGLE_VNODE;
+          children = children[0];
+        } else {
+          // 多个子节点，切子节点使用key
+          childFlags = ChildrenFlags.KEYED_VNODES; // children = normalizeVNodes(children)            
+        }
+      } else if (children == null) {
+        // 没有子节点
+        childFlags = ChildrenFlags.NO_CHILDREN;
+      } else if (children._isVNode) {
+        // 单个子节点
+        childFlags = ChildrenFlags.SINGLE_VNODE;
+      } else {
+        childFlags = ChildrenFlags.SINGLE_VNODE;
+        children = createTextVNode(children + '');
+      }
+
+      let vnode = {
+        _isVNode: true,
+        flags,
+        tag,
+        data,
+        children,
+        childFlags,
+        el: null
+      };
+      console.log("++++++++++", vnode); // return {
+      //     _isVNode: true,
+      //     flags,
+      //     tag,
+      //     data,
+      //     children,
+      //     childFlags,
+      //     el:null
+      // }
+    } // export function createElement(){
+    // }
+    // 按位运算
+    //   // VNode 是普通标签
+    //   mountElement(/* ... */)
+    // } else if (flags & VNodeFlags.COMPONENT) {
+    //   // VNode 是组件
+    //   mountComponent(/* ... */)
+    // } else if (flags & VNodeFlags.TEXT) {
+    //   // VNode 是纯文本
+    //   mountText(/* ... */)
+    // }
+
+    /**
+     * help to render v-for lists
+    */
+    function renderList(val, render) {
+      let ret, i, l, keys, key;
+
+      if (Array.isArray(val) || typeof val == 'string') {
+        ret = new Array(val.length);
+
+        for (i = 0, l = val.length; i < l; i++) {
+          ret[i] = render(val[i], i);
+        }
+      } else if (typeof val === 'number') {
+        ret = new Array(val);
+
+        for (i = 0; i < val; i++) {
+          ret[i] = render(i + 1, i);
+        }
+      } else if (isObject(val)) {
+        keys = Object.keys(val);
+        ret = new Array(keys.length);
+
+        for (i = 0, l = keys.length; i < l; i++) {
+          key = keys[i];
+          ret[i] = render(val[key], key, i);
+        }
+      }
+
+      if (ret == null) {
+        ret = [];
+      }
+
+      return ret;
     }
 
     const no = () => false;
@@ -399,15 +536,14 @@
       target._v = createTextVNode;
       target._s = toString;
       target._c = h;
+      target._l = renderList;
     }
 
     function initRender(vm) {
       vm._vnode = null;
       vm._staticTrees = null; //vm._c 是用于编译器根据模板字符串生渲染函数的
-
-      vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false);
-
-      vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true);
+      // vm._c = (a,b,c,d) => createElement(vm,a,b,c,d,false)
+      // vm.$createElement = (a,b,c,d) => createElement(vm,a,b,c,d,true)
 
       XVue.prototype._update = function (vnode, hy) {};
 
@@ -421,7 +557,7 @@
         try {
           console.log("社会很单纯~~~~~", render);
           vnode = render.call(vm);
-          console.log("执行渲染函数，生成虚拟dom");
+          console.log("执)))___________数，生成虚拟dom", vnode);
         } catch (e) {
           warn$1(`Render Error:${e}`);
         }
@@ -1796,6 +1932,22 @@
 
     function genText(text) {
       return `_v(${text.type === 2 ? text.expression : JSON.stringify(text.text)})`;
+    }
+    function genFor(el, state, altGen, altHelper) {
+      const exp = el.for;
+      const alias = el.alias;
+      const iteractor1 = el.iteractor1 ? `,${el.iteractor1}` : '';
+      const iteractor2 = el.iteractor2 ? `,${el.iteractor2}` : '';
+
+      if (el.tag !== 'slot' && el.tag !== 'template' && !el.key) {
+        state.warn(`<${el.tag} v-for="${alias} in ${exp}">: component lists rendered with ` + `v-for should have explicit keys. ` + `See https://vuejs.org/guide/list.html#key for more info.`, el.rawAttrsMap['v-for'], true
+        /* tip */
+        );
+      }
+
+      el.forProcessed = true; // avoid recursion
+
+      return `${altHelper || '_l'}((${exp})),` + `function(${alias}${iteractor1}${iteractor2}){` + `return ${(altGen || genElement)(el, state)}` + '})';
     }
 
     // creatCompilerCreator根据baseCompile创建出不同平台编译器

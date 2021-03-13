@@ -28,7 +28,7 @@ export function mountComponent(vm,el,hydrating){
         // vm._update(vm._render(),hydrating)
         const vnode = vm._render()
         vm._update(vnode,hydrating)
-        console.log("执行渲染函数生成vnode， 将vnode转化为真实dom")
+        console.log("执行渲染函数生成vnode， 将vnode转化为真实dom",vnode)
     }
 
     // 渲染函数的watcher

@@ -7,8 +7,8 @@ export function initRender(vm){
     vm._staticTrees = null
 
     //vm._c 是用于编译器根据模板字符串生渲染函数的
-    vm._c = (a,b,c,d) => createElement(vm,a,b,c,d,false)
-    vm.$createElement = (a,b,c,d) => createElement(vm,a,b,c,d,true)
+    // vm._c = (a,b,c,d) => createElement(vm,a,b,c,d,false)
+    // vm.$createElement = (a,b,c,d) => createElement(vm,a,b,c,d,true)
 
     XVue.prototype._update = function(vnode,hy){
 
@@ -21,7 +21,7 @@ export function initRender(vm){
         try{
             console.log("社会很单纯~~~~~",render);
             vnode = render.call(vm)
-            console.log("执行渲染函数，生成虚拟dom");
+            console.log("执)))___________数，生成虚拟dom",vnode);
         }catch(e){
             warn(`Render Error:${e}`);
         }

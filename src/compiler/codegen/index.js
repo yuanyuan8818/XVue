@@ -112,3 +112,27 @@ function genNode(node,state){
 export function genText(text){    
     return `_v(${text.type === 2 ? text.expression: JSON.stringify(text.text)})`
 }
+
+export function genFor(el,state,altGen,altHelper){
+    const exp = el.for
+    const alias = el.alias
+    const iteractor1 = el.iteractor1 ? `,${el.iteractor1}` : ''
+    const iteractor2 = el.iteractor2 ? `,${el.iteractor2}` : ''
+
+    if(el.tag !== 'slot' && el.tag !== 'template' && !el.key){
+        state.warn(
+            `<${el.tag} v-for="${alias} in ${exp}">: component lists rendered with ` +
+            `v-for should have explicit keys. ` +
+            `See https://vuejs.org/guide/list.html#key for more info.`,
+            el.rawAttrsMap['v-for'],
+            true /* tip */
+          )
+    }
+
+    el.forProcessed = true // avoid recursion
+
+    return `${altHelper || '_l'}((${exp})),` + 
+       `function(${alias}${iteractor1}${iteractor2}){` +
+         `return ${(altGen || genElement)(el,state)}` +
+         '})'
+}
