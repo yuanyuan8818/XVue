@@ -543,7 +543,30 @@
       // vm._c = (a,b,c,d) => createElement(vm,a,b,c,d,false)
       // vm.$createElement = (a,b,c,d) => createElement(vm,a,b,c,d,true)
 
-      XVue.prototype._update = function (vnode, hy) {};
+      XVue.prototype._update = function (vnode, hy) {
+        const vm = this;
+        let container = vm.$el;
+        const prevVNode = vm._vnode;
+        vm.$parent;
+
+        if (prevVNode == null) {
+          // 没有旧的VNode， 使用"mounnt"函数挂在全新的VNode
+          if (vnode) {
+            mount(vnode, container);
+            container.vnode = vnode;
+          }
+        } else {
+          if (vnode) {
+            //有旧的VNode, 则调用'patch'函数打补丁
+            patch(prevVNode, vnode, container);
+            container.vnode = vnode;
+          } else {
+            // 有旧的vnode，但是没有新的vnode，直接移除旧的
+            container.removeChild(prevVNode.el);
+            container.vnode = null;
+          }
+        }
+      };
 
       XVue.prototype._render = function () {
         const vm = this;

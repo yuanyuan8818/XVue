@@ -38,7 +38,7 @@ VNodeFlags.COMPONENT_STATEFUL = VNodeFlags.COMPONENT_STATEFUL_NORMAL
 VNodeFlags.COMPONENT = VNodeFlags.COMPONENT_STATEFUL | VNodeFlags.COMPONENT_FUNCTIONAL
 
 
-const ChildrenFlags = {
+export const ChildrenFlags = {
     // 未知的children类型
     UNKNOWN_CHILDREN: 0,
     // 没有children
@@ -112,7 +112,6 @@ export function h(tag, data = null, children = null, chldrenDeep){
         childFlags,
         el:null
     }
-
     console.log("++++++++++",vnode);
     return vnode
 
