@@ -2,7 +2,9 @@
 import {installRenderHelpers} from '../vdom/render-helper/index'
 
 import {warn} from '@/core/util/index'
-import { mountComponent } from './lifecycle'
+import { mountElement } from '../mount-helper/element'
+import { mountText } from '../mount-helper/text'
+import { VNodeFlags } from '../vdom/vnode'
 export function initRender(vm){
     vm._vnode = null
     vm._staticTrees = null
@@ -20,6 +22,15 @@ export function initRender(vm){
 
         if(prevVNode == null){
             // 没有旧的VNode， 使用"mounnt"函数挂在全新的VNode
+            if(!parent){
+                // 没有parent，是根节点渲染
+                parentElm = container.parentNode
+                console.log("能拿到吗？？？？？？？？",parentElm);
+                parentElm && parentElm.removeChild(container)
+                container = parentElm
+            }else{
+                container = parent
+            }
             if(vnode){
                 mount(vnode,container)
                 container.vnode = vnode
@@ -55,4 +66,22 @@ export function initRender(vm){
     // 组装渲染函数方法
     installRenderHelpers(XVue.prototype);
     
+}
+
+
+export function mount(vnode,container,refVNode){
+    const flags = vnode.flags
+    console.log("^^^^^开始挂载&&&&&&&&",vnode);
+    if(flags & VNodeFlags.ELEMENT){
+        console.log("开始挂载普通标签--------",container);
+        // 挂载普通标签
+        mountElement(vnode,container,refVNode)
+    }else if(flags & VNodeFlags.COMPONENT){
+        // 挂载组件
+    }else if(flags & VNodeFlags.FRAGMENT){
+        // 挂载Fragment
+    }else if(flags & VNodeFlags.TEXT){
+        // 挂载纯文本
+        mountText(vnode,container)
+    }
 }

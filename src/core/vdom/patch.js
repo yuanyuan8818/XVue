@@ -1,6 +1,8 @@
 import { mountComponent } from "../instance/lifecycle"
 import { VNodeFlags,ChildrenFlags } from "./vnode"
+import {compareDoubleEnd} from './doubleEnd'
 
+const domPropsRE = /\[A-Z]|^(?:value|checked|selected|muted)$/;
 
 export function patch(prevVNode, nextVNode, container){
     const nextFlags = nextVNode.flags 
@@ -180,10 +182,13 @@ export function patchChildren(prevChildFlags,nextChildFlags,prevChildren,nextChi
                     break
                 default:
                     // 新的children是多个子节点，使用diff算法
-                    // waiting to do                    
+                    // waiting to do         
+                    // compareDoubleEnd(prevChildren,nextChildren,container)
+                    infernoDiff(prevChildren,nextChildren,container)           
                     break                    
             }      
             break
     }
     
 }
+

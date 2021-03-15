@@ -537,6 +537,74 @@
       target._l = renderList;
     }
 
+    const domPropsRE = /\[A-Z]|^(?:value|checked|selected|muted)$/;
+    function mountElement(vnode, container, refVNode) {
+      const el = document.createElement(vnode.tag);
+      console.log("真是的=======", el);
+      vnode.el = el; // 将vnodeData应用到元素上
+
+      const data = vnode.data.attrs;
+
+      if (data) {
+        console.log("++++++++++++", data);
+
+        for (let key in data) {
+          // key可能是calss style on 等等
+          switch (key) {
+            case 'style':
+              el.style = data.style;
+              break;
+
+            case 'class':
+              el.className = data[key];
+              break;
+
+            default:
+              if (key[0] === 'o' && key[1] == 'n') {
+                el.addEventListener(key.slice(2), data[key]);
+              } else if (domPropsRE.test(key)) {
+                /** Properties(DOM Prop) 和 Attributes
+                 * 1. 标准属性，DOM prop 如 id <body id = 'page'></body>
+                 * 可以通过 document.body.id来访问，也可以document.body[id] 直接设置
+                 * 2. 非标属性，Attributes <body custom="val">
+                 *  当尝试通过document.body.custom 访问不了
+                */
+                // 当作DOM Prop处理                                
+                el[key] = nextVNode;
+              } else {
+                // 当作Attr处理
+                el.setAttribute(key, data[key]);
+              }
+
+              break;
+          }
+        }
+      } // 递归地挂载子节点
+
+
+      const childFlags = vnode.childFlags;
+      const children = vnode.children;
+
+      if (childFlags !== ChildrenFlags.NO_CHILDREN) {
+        if (childFlags & ChildrenFlags.SINGLE_VNODE) {
+          // 单个子节点，直接mout
+          mount(children, el);
+        } else if (childFlags & ChildrenFlags.MULTIPLE_VNODES) {
+          for (let i = 0; i < vnode.children.length; i++) {
+            mount(children[i], el);
+          }
+        }
+      }
+
+      refVNode ? container.insertBefore(el, refVNode) : container.appendChild(el);
+    }
+
+    function mountText(vnode, container) {
+      const el = document.createTextNode(vnode.children);
+      vnode.el = el;
+      container.appendChild(el);
+    }
+
     function initRender(vm) {
       vm._vnode = null;
       vm._staticTrees = null; //vm._c 是用于编译器根据模板字符串生渲染函数的
@@ -547,10 +615,21 @@
         const vm = this;
         let container = vm.$el;
         const prevVNode = vm._vnode;
-        vm.$parent;
+        const parent = vm.$parent;
+        let parentElm = null;
 
         if (prevVNode == null) {
           // 没有旧的VNode， 使用"mounnt"函数挂在全新的VNode
+          if (!parent) {
+            // 没有parent，是根节点渲染
+            parentElm = container.parentNode;
+            console.log("能拿到吗？？？？？？？？", parentElm);
+            parentElm && parentElm.removeChild(container);
+            container = parentElm;
+          } else {
+            container = parent;
+          }
+
           if (vnode) {
             mount(vnode, container);
             container.vnode = vnode;
@@ -588,6 +667,19 @@
 
 
       installRenderHelpers(XVue.prototype);
+    }
+    function mount(vnode, container, refVNode) {
+      const flags = vnode.flags;
+      console.log("^^^^^开始挂载&&&&&&&&", vnode);
+
+      if (flags & VNodeFlags.ELEMENT) {
+        console.log("开始挂载普通标签--------", container); // 挂载普通标签
+
+        mountElement(vnode, container, refVNode);
+      } else if (flags & VNodeFlags.COMPONENT) ; else if (flags & VNodeFlags.FRAGMENT) ; else if (flags & VNodeFlags.TEXT) {
+        // 挂载纯文本
+        mountText(vnode, container);
+      }
     }
 
     // 数据代理  this.example  即是访问 this._data.example
