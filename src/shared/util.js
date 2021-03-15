@@ -29,6 +29,7 @@ export function cached(fn){
 }
 
 export function toString(val) {
+    console.log("我看一下啊====================",val);
     return val == null ?
         '' :
         typeof val === 'object' ?

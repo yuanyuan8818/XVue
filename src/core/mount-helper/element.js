@@ -9,8 +9,7 @@ export function mountElement(vnode,container,refVNode){
     vnode.el = el
     // 将vnodeData应用到元素上
     const data = vnode.data.attrs
-    if(data){
-        console.log("++++++++++++",data);
+    if(data){        
         for(let key in data){
             // key可能是calss style on 等等
             switch(key){

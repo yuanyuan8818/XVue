@@ -111,8 +111,7 @@ export function h(tag, data = null, children = null, chldrenDeep){
         children,
         childFlags,
         el:null
-    }
-    console.log("++++++++++",vnode);
+    }    
     return vnode
 
     // return {

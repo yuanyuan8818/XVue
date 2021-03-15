@@ -20,8 +20,7 @@ export function parseHTML(html,options){
     const expectHTML = options.expectHTML
     let index = 0
     let last,lastTag
-    
-    console.log("会从这里开始吗=========",html);
+        
     while(html){
 
         if(!lastTag || !isPlainTextElement(lastTag)){

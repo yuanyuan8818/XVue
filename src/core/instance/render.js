@@ -24,8 +24,7 @@ export function initRender(vm){
             // 没有旧的VNode， 使用"mounnt"函数挂在全新的VNode
             if(!parent){
                 // 没有parent，是根节点渲染
-                parentElm = container.parentNode
-                console.log("能拿到吗？？？？？？？？",parentElm);
+                parentElm = container.parentNode                
                 parentElm && parentElm.removeChild(container)
                 container = parentElm
             }else{

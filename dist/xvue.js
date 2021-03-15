@@ -441,7 +441,6 @@
         childFlags,
         el: null
       };
-      console.log("++++++++++", vnode);
       return vnode; // return {
       //     _isVNode: true,
       //     flags,
@@ -529,6 +528,10 @@
         return hit || (cache[str] = fn(str));
       };
     }
+    function toString(val) {
+      console.log("我看一下啊====================", val);
+      return val == null ? '' : typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val);
+    }
 
     function installRenderHelpers(target) {
       target._v = createTextVNode;
@@ -546,8 +549,6 @@
       const data = vnode.data.attrs;
 
       if (data) {
-        console.log("++++++++++++", data);
-
         for (let key in data) {
           // key可能是calss style on 等等
           switch (key) {
@@ -623,7 +624,6 @@
           if (!parent) {
             // 没有parent，是根节点渲染
             parentElm = container.parentNode;
-            console.log("能拿到吗？？？？？？？？", parentElm);
             parentElm && parentElm.removeChild(container);
             container = parentElm;
           } else {
@@ -1304,7 +1304,6 @@
       options.expectHTML;
       let index = 0;
       let lastTag;
-      console.log("会从这里开始吗=========", html);
 
       while (html) {
         if (!lastTag || !isPlainTextElement(lastTag)) {
