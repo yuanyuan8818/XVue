@@ -27,6 +27,34 @@ function makeAttrsMap(attrs){
     return map
 }
 
+function processElement(element,options){
+    processAttrs(element)
+}
+
+function processAttrs(el){
+    const list = el.attrsList
+    console.log("让我看下呀------------",el.attrsList);
+    let i, l, name, rawName, value, modifiers
+    for( i = 0, l = list.length; i< l; i++){
+        name = rawName = list[i].name
+        value = list[i].value        
+        if(dirRE.test(name)){ // 匹配 v- @ : 开头的属性
+            // mark element as dynamic
+            el.hasBindings = true
+            /**处理修饰符*/
+            modifiers = parseModifiers(name)
+        }else{
+
+        }
+    }
+
+}
+
+function parseModifiers(name){
+    const match = name.match(modifierRE)
+    // to do
+}
+
 const currentParent = null
 export function createASTElement(tag,attrs,parent){
     let ele = {
@@ -104,6 +132,15 @@ export function parse(template,options){
             // apply pre-transforms
             for (let i = 0; i < preTransforms.length; i++) {
                 element = preTransforms[i](element, options) || element
+            }
+
+            if(!element.processed){
+                // 如果存在v-if等，则给element添加if  elseif等属性
+                // structural directives
+                // processIf(element)
+                // processFor(element)
+                
+                processElement(element,options)
             }
 
             if(!root){

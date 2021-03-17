@@ -52,10 +52,8 @@ export function initRender(vm){
         const vm = this;
         const { render } = vm.$options
         let vnode;
-        try{
-            console.log("社会很单纯~~~~~",render);
-            vnode = render.call(vm)
-            console.log("执)))___________数，生成虚拟dom",vnode);
+        try{            
+            vnode = render.call(vm)            
         }catch(e){
             warn(`Render Error:${e}`);
         }
@@ -69,10 +67,8 @@ export function initRender(vm){
 
 
 export function mount(vnode,container,refVNode){
-    const flags = vnode.flags
-    console.log("^^^^^开始挂载&&&&&&&&",vnode);
-    if(flags & VNodeFlags.ELEMENT){
-        console.log("开始挂载普通标签--------",container);
+    const flags = vnode.flags    
+    if(flags & VNodeFlags.ELEMENT){        
         // 挂载普通标签
         mountElement(vnode,container,refVNode)
     }else if(flags & VNodeFlags.COMPONENT){

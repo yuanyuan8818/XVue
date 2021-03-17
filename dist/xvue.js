@@ -655,9 +655,7 @@
         let vnode;
 
         try {
-          console.log("社会很单纯~~~~~", render);
           vnode = render.call(vm);
-          console.log("执)))___________数，生成虚拟dom", vnode);
         } catch (e) {
           warn$1(`Render Error:${e}`);
         }
@@ -670,11 +668,9 @@
     }
     function mount(vnode, container, refVNode) {
       const flags = vnode.flags;
-      console.log("^^^^^开始挂载&&&&&&&&", vnode);
 
       if (flags & VNodeFlags.ELEMENT) {
-        console.log("开始挂载普通标签--------", container); // 挂载普通标签
-
+        // 挂载普通标签
         mountElement(vnode, container, refVNode);
       } else if (flags & VNodeFlags.COMPONENT) ; else if (flags & VNodeFlags.FRAGMENT) ; else if (flags & VNodeFlags.TEXT) {
         // 挂载纯文本
@@ -1739,6 +1735,9 @@
       console.error(`[Vue compiler]: ${msg}`);
     }
 
+    const dirRE = /^v-|^@|^:/; //匹配是否有指令 v- 开头 @即 v-on     : 即 v-bind
+    const modifierRE = /\.[^.]+/g;
+
     function makeAttrsMap(attrs) {
       const map = {};
       let l = attrs.length;
@@ -1748,6 +1747,34 @@
       }
 
       return map;
+    }
+
+    function processElement(element, options) {
+      processAttrs(element);
+    }
+
+    function processAttrs(el) {
+      const list = el.attrsList;
+      console.log("让我看下呀------------", el.attrsList);
+      let i, l, name;
+
+      for (i = 0, l = list.length; i < l; i++) {
+        name = list[i].name;
+        list[i].value;
+
+        if (dirRE.test(name)) {
+          // 匹配 v- @ : 开头的属性
+          // mark element as dynamic
+          el.hasBindings = true;
+          /**处理修饰符*/
+
+          parseModifiers(name);
+        }
+      }
+    }
+
+    function parseModifiers(name) {
+      name.match(modifierRE); // to do
     }
     function createASTElement(tag, attrs, parent) {
       let ele = {
@@ -1824,6 +1851,14 @@
 
           for (let i = 0; i < preTransforms.length; i++) {
             element = preTransforms[i](element, options) || element;
+          }
+
+          if (!element.processed) {
+            // 如果存在v-if等，则给element添加if  elseif等属性
+            // structural directives
+            // processIf(element)
+            // processFor(element)
+            processElement(element);
           }
 
           if (!root) {
@@ -1938,10 +1973,9 @@
     } // 代码生成器： 使AST生成render函数的代码字符串
 
     function generate(ast, options) {
-      console.log("代码生成器==", ast);
+      // console.log("代码生成器==",ast);
       const state = new CodegenState(options);
       const code = ast ? genElement(ast, state) : '_c("div")';
-      console.log("最终————————————————————————————", code);
       return {
         render: createFunction(`with(this){return ${code}}`),
         staticRenderFns: state.staticRenderFns

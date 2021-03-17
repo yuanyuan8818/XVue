@@ -9,10 +9,9 @@ export class CodegenState{
 
 // 代码生成器： 使AST生成render函数的代码字符串
 export function generate(ast,options){
-    console.log("代码生成器==",ast);
+    // console.log("代码生成器==",ast);
     const state = new CodegenState(options)        
-    const code = ast ? genElement(ast,state): '_c("div")'
-    console.log("最终————————————————————————————",code);        
+    const code = ast ? genElement(ast,state): '_c("div")'    
     return {                
         render: createFunction(`with(this){return ${code}}`),        
         staticRenderFns: state.staticRenderFns

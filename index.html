@@ -8,11 +8,10 @@
 </head>
 <body>    
     <div id="app">
-        <h2>Let's Start XVue Test!</h2>        
-        <span>我的名字{{name}},请多多指教！</span>     
-        <div>
-            <span>万丈高楼平地起，辉煌只能靠自己~</span>
-        </div>           
+        <h2>Let's Test My XVue!</h2>        
+        <span>我的名字{{name}},请多多指教！</span>             
+        <input type="text" v-model="phone">
+        <span>{{phone}}</span>
     </div>
     <script>            
         let vm = new XVue({
@@ -20,6 +19,7 @@
             data: {
                     name:'小圆子',
                     age: 15,
+                    phone: '168293',
                     // vvmodel: '处理v-model',
                     info:{
                         job: 'coder',
@@ -34,6 +34,10 @@
             },
             mounted(){                                
                 console.log("==========",this.name);
+                let _this = this
+                setTimeout(()=>{
+                        _this.name = "小仙女"
+                },500)
             },
             methods:{
                 filterFn(){
