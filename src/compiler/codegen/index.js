@@ -1,15 +1,51 @@
 
+import directives from '../directives/index'
+import baseDirectives from '../directives/index'
 
 export class CodegenState{
     constructor(options){
         this.options = options
         this.warn = options.warn || baseWarn
+        this.directives = Object.assign({},baseDirectives)
     }
 }
 
+function genDirectives(el,state){
+    const dirs = el.directives 
+    if(!dirs) return
+    let res = 'directives:['
+    let hasRuntime = false 
+    var i, l, dir, needRuntime
+    for(i = 0, l = dirs.length; i< l; i++){
+        dir = dirs[i]
+        needRuntime = true        
+        
+        var gen = state.directives[dir.name]
+        if(gen){
+            needRuntime = !!gen(el,dir,state.warn)
+        }
+
+        console.log("=======成语借楼======",);
+        // v-model, v-show
+        if(needRuntime){
+            hasRuntime = true
+            res += `{name:${JSON.stringify(dir.name)}, rawName:${JSON.stringify(dir.rawName)}`
+                    + `${dir.value ? `,value:(${dir.value}),expression:${JSON.stringify(dir.value)}` 
+                    : ''}` + `},`
+            
+            console.log("====111111111111=======",res);
+        }        
+    }
+
+    if (hasRuntime) {
+        return res.slice(0, -1) + ']';
+    }
+
+} 
+
 // 代码生成器： 使AST生成render函数的代码字符串
 export function generate(ast,options){
-    // console.log("代码生成器==",ast);
+    console.log("代码生成器==",ast);
     const state = new CodegenState(options)        
     const code = ast ? genElement(ast,state): '_c("div")'    
     return {                
@@ -53,6 +89,7 @@ export function genElement(el,state){
 
             let children = genChildren(el,state,true)
             code = `_c('${el.tag}'${data?`,${data}`:''}${children?`,${children}`: ''})`                
+            console.log("喵喵code",code);
             return code
         }
 
@@ -76,16 +113,32 @@ function genChildren(el,state){
 // 目标：{key: 3,ref: 'xx', id:'app', class: 'test' }
 function genData(el,state){
     let data = '{'
+
+    const dirs = genDirectives(el,state)    
+    if(dirs){
+        data += dirs + ','        
+    } 
+    
     if(el.key){
         data += `key:${el.key},`
     }
+
+    console.log("我欲癫狂---",el.props);
+
+    if(el.props){
+        data += `domProps:{${genProps(el.props)}}`
+    }
+
+
     if(el.ref){
         data += `ref:${el.ref}`
     }
-    if(el.attrsList){
-        data += `attrs:{${genProps(el.attrsList)}}`
-    }
+    // if(el.attrsList){
+    //     data += `attrs:{${genProps(el.attrsList)}}`
+    // }
     data = data.replace(/,$/,'') + '}'
+
+    console.log("=========我疑惑了=============",data);
     return data
 }
 

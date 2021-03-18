@@ -1,6 +1,7 @@
 
 export const no = () => false
 export const isBuiltInTag = makeMap('slot,component',true)
+export const emptyObject = Object.freeze({})
 /**
  * Make a map and return a function for checking if 
  * a key is in that map.
@@ -28,8 +29,7 @@ export function cached(fn){
     })
 }
 
-export function toString(val) {
-    console.log("我看一下啊====================",val);
+export function toString(val) {    
     return val == null ?
         '' :
         typeof val === 'object' ?

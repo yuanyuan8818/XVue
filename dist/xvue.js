@@ -21,8 +21,8 @@
       };
     }
 
-    function warn$1(msg, vm) {
-      console.error(`[XVue warn]: ${msg}`, warn$1);
+    function warn$2(msg, vm) {
+      console.error(`[XVue warn]: ${msg}`, warn$2);
     }
     const hasOwnProperty = Object.prototype.hasOwnProperty;
     function hasOwn(obj, key) {
@@ -500,6 +500,7 @@
 
     const no = () => false;
     makeMap('slot,component', true);
+    const emptyObject = Object.freeze({});
     /**
      * Make a map and return a function for checking if 
      * a key is in that map.
@@ -529,7 +530,6 @@
       };
     }
     function toString(val) {
-      console.log("我看一下啊====================", val);
       return val == null ? '' : typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val);
     }
 
@@ -657,7 +657,7 @@
         try {
           vnode = render.call(vm);
         } catch (e) {
-          warn$1(`Render Error:${e}`);
+          warn$2(`Render Error:${e}`);
         }
 
         return vnode;
@@ -1259,11 +1259,11 @@
       return index$1.createASTElement(el.tag, el.attrsList.slice(), el.parent);
     }
 
-    var model = {
+    var model$1 = {
       preTransformNode
     };
 
-    var modules = [klass, style, model]; // export default{
+    var modules = [klass, style, model$1]; // export default{
     //       klass,
     //   style,
     //   model
@@ -1728,15 +1728,160 @@
       };
     }
 
+    function addHandler(el, name, value, modifiers, important, warn, range, dynamic) {
+      modifiers = modifiers || emptyObject;
+      modifiers = modifiers || emptyObject;
+
+      if (modifiers.capture) {
+        delete modifiers.capture;
+        name = '!' + name;
+      }
+
+      if (modifiers.once) {
+        delete modifiers.once;
+        name = '~' + name;
+      }
+
+      if (modifiers.passive) {
+        delete modifiers.passive;
+        name = '&' + name;
+      }
+
+      if (name === 'click') {
+        if (modifiers.right) {
+          // right修饰符标识右击
+          name = 'contextmenu'; // 右击会触发contextmenu事件 弹出一个菜单
+
+          delete modifiers.right;
+        } else if (modifiers.middle) {
+          // middle 滚轮事件
+          name = 'mouseup';
+        }
+      }
+
+      let events;
+
+      if (modifiers.native) {
+        delete modifiers.native;
+        events = el.nativeEvents || (el.nativeEvents = {});
+      } else {
+        events = el.events || (el.events = {});
+      }
+
+      const newHandler = {
+        value
+      };
+
+      if (modifiers !== emptyObject) {
+        newHandler.modifiers = modifiers;
+      }
+
+      const handlers = events[name];
+
+      if (Array.isArray(handlers)) ; else if (handlers) ; else {
+        events[name] = newHandler;
+      }
+    }
     function pluckModuleFunction(modules, key) {
       return modules ? modules.map(m => m[key]).filter(_ => _) : [];
     }
     function baseWarn$1(msg, rang) {
       console.error(`[Vue compiler]: ${msg}`);
     }
+    function addDirective(el, name, rawName, value, arg, modifiers) {
+      console.log("el.directives.........指令---", el);
+      (el.directives || (el.directives = [])).push({
+        name,
+        rawName,
+        value,
+        arg,
+        modifiers
+      });
+      el.plain = false;
+    }
+    function addProp(el, name, value, range, dynamic) {
+      (el.props || (el.props = [])).push({
+        name,
+        value,
+        dynamic
+      });
+      el.plain = false;
+    }
 
-    const dirRE = /^v-|^@|^:/; //匹配是否有指令 v- 开头 @即 v-on     : 即 v-bind
-    const modifierRE = /\.[^.]+/g;
+    const dirRE = /^v-|^@|^:/; // const modifierRE = /\.[^.]+/g
+
+    const modifierRE = /\.[^.\]]+(?=[^\]]*$)/g;
+    const bindRE = /^:|^v-bind:/;
+    const argRE = /:(.*)$/;
+    function processAttrs(el) {
+      const list = el.attrsList;
+      let i, l, name, rawName, value, modifiers;
+
+      for (i = 0, l = list.length; i < l; i++) {
+        name = rawName = list[i].name;
+        value = list[i].value;
+
+        if (dirRE.test(name)) {
+          //匹配是否有指令 v- 开头 @即 v-on     : 即 v-bind      const dirRE = /^v-|^@|^:/  
+          // mark element as dynamic 
+          el.hasBindings = true; // modifiers 修饰符
+
+          modifiers = parseModifiers(name);
+
+          if (modifiers) {
+            name = name.replace(modifierRE, '');
+          }
+
+          if (bindRE.test(name)) {
+            // v-bind     bindRE = /^:|^v-bind:/
+            name = name.replace(bindRE, ''); // eg  v-bind:some-prop.sync 先用''替换掉修饰符，再替换掉v-bind
+            // parseFilter用来将表达式和过滤器整合在一起
+
+            value = parseFilters(value); // isProp标识着该绑定属性是否是原生DOM对象  eg  innherHtml 通过 .访问
+            // to do...
+            // if ((modifiers && modifiers.prop) || (
+            //     !el.component && platformMustUseProp(el.tag, el.attrsMap.type, name)
+            //   )) {
+            //     addProp(el, name, value, list[i], isDynamic)
+            //   } else {
+            //     addAttr(el, name, value, list[i], isDynamic)
+            //   }
+          } else if (onRE.test(name)) {
+            // v-on
+            name = name.replace(onRE, '');
+            addHandler(el, name, value, modifiers, false, warn);
+          } else {
+            // normal directives  v-model 也在此间
+            name = name.replace(dirRE, ''); // parse arg 
+
+            const argMatch = name.match(argRE);
+            const arg = argMatch && argMatch[1];
+
+            if (arg) {
+              name = name.slice(0, -(arg.length + 1));
+            }
+
+            addDirective(el, name, rawName, value, arg, modifiers); // if(name === 'model'){
+            //     checkForAliasModel(el, value)
+            // }                
+          }
+        }
+      }
+    }
+
+    function parseModifiers(name) {
+      const match = name.match(modifierRE);
+
+      if (match) {
+        const ret = {};
+        match.forEach(m => {
+          ret[m.slice(1)] = true;
+        });
+        return ret;
+      }
+    }
+
+    const onRE = /^@|^v-on:/;
 
     function makeAttrsMap(attrs) {
       const map = {};
@@ -1751,30 +1896,6 @@
 
     function processElement(element, options) {
       processAttrs(element);
-    }
-
-    function processAttrs(el) {
-      const list = el.attrsList;
-      console.log("让我看下呀------------", el.attrsList);
-      let i, l, name;
-
-      for (i = 0, l = list.length; i < l; i++) {
-        name = list[i].name;
-        list[i].value;
-
-        if (dirRE.test(name)) {
-          // 匹配 v- @ : 开头的属性
-          // mark element as dynamic
-          el.hasBindings = true;
-          /**处理修饰符*/
-
-          parseModifiers(name);
-        }
-      }
-    }
-
-    function parseModifiers(name) {
-      name.match(modifierRE); // to do
     }
     function createASTElement(tag, attrs, parent) {
       let ele = {
@@ -1792,17 +1913,17 @@
     function warnOnce(msg) {
       if (!warned) {
         warned = true;
-        warn(msg);
+        warn$1(msg);
       }
     }
 
-    let warn, preTransforms; // parse在词法分析的基础上做句法分析
+    let warn$1, preTransforms; // parse在词法分析的基础上做句法分析
 
     function parse(template, options) {
       let root = null;
       let stack = [];
       let currentParent;
-      warn = options.warn || baseWarn$1;
+      warn$1 = options.warn || baseWarn$1;
       preTransforms = pluckModuleFunction(options.modules, 'preTransformNode');
       pluckModuleFunction(options.modules, 'transformNode');
 
@@ -1860,6 +1981,8 @@
             // processFor(element)
             processElement(element);
           }
+
+          console.log("================", element);
 
           if (!root) {
             root = element;
@@ -1964,16 +2087,139 @@
       // markStaticRoots(root,false) // 标注静态根节点    
     }
 
+    function on() {}
+
+    function bind() {}
+
+    function model(el, dir, _warn) {
+      const value = dir.value;
+      const tag = el.tag;
+      const type = el.attrsMap.type;
+
+      if (el.component) {
+        genComponentModel(el, value);
+      } else if (tag === 'select') ; else if (tag === 'input' && type === 'checkbox') ; else if (tag === 'input' && type == 'radio') ; else if (tag === 'input' || tag === 'textarea') {
+        genDefaultModel(el, value);
+      } else if (!isHTMLTag(tag)) {
+        return false;
+      } else {
+        warn(`<${el.tag} m-model="${value}">: ` + `m-model is not supported on this element type. `);
+      }
+
+      return true;
+    }
+    /**
+     * 对input输入框 textarea处理
+     */
+
+
+    function genDefaultModel(el, value) {
+      const type = el.attrsMap.type;
+      {
+        const value = el.attrsMap['v-bind:value'] || el.attrsMap[':value'];
+
+        if (value) {
+          const binding = el.attrsMap['v-bind:value'] ? 'v-bind:value' : ':value';
+          warn(`${binding}="${value}" conflicts with v-model on the same element `);
+        }
+      }
+      const needComposiion = type !== 'range';
+      const event = type === 'range' ? '__r' : 'input';
+      let valueExpression = `$event.target.value`;
+      let code = genAssignmentCode(value, valueExpression);
+
+      if (needComposiion) {
+        code = `if($event.target.composing)return;${code}`;
+      }
+
+      addProp(el, 'value', `(${value})`);
+      addHandler(el, event, code, null);
+    }
+
+    function genAssignmentCode(value, assignment) {
+      const res = parseModel(value);
+
+      if (res.key === null) {
+        return `${value}=${assignment}`;
+      } else {
+        return `$set(${res.exp},${res.key},${assignment})`;
+      }
+    } // 处理m-model="obj.val"
+    // 暂不处理带[]的
+
+
+    function parseModel(val) {
+      val = val.trim();
+      let len = val.length; // 1. m-model = "name"
+      // 2. m-model = "obj[name].age"
+      // 3. m-model = "obj.name.age"
+
+      if (val.indexOf('[') < 0 || val.lastIndexOf(']') < len - 1) {
+        let index = val.lastIndexOf('.');
+
+        if (index > -1) {
+          return {
+            exp: val.slice(0, index),
+            key: JSON.stringify(val.slice(index + 1))
+          };
+        } else {
+          return {
+            exp: val,
+            key: null
+          };
+        }
+      }
+    }
+
+    var baseDirectives = {
+      on,
+      bind,
+      model //   cloak: noop
+
+    };
+
     class CodegenState {
       constructor(options) {
         this.options = options;
         this.warn = options.warn || baseWarn;
+        this.directives = Object.assign({}, baseDirectives);
       }
 
+    }
+
+    function genDirectives(el, state) {
+      const dirs = el.directives;
+      if (!dirs) return;
+      let res = 'directives:[';
+      let hasRuntime = false;
+      var i, l, dir, needRuntime;
+
+      for (i = 0, l = dirs.length; i < l; i++) {
+        dir = dirs[i];
+        needRuntime = true;
+        var gen = state.directives[dir.name];
+
+        if (gen) {
+          needRuntime = !!gen(el, dir, state.warn);
+        }
+
+        console.log("=======成语借楼======"); // v-model, v-show
+
+        if (needRuntime) {
+          hasRuntime = true;
+          res += `{name:${JSON.stringify(dir.name)}, rawName:${JSON.stringify(dir.rawName)}` + `${dir.value ? `,value:(${dir.value}),expression:${JSON.stringify(dir.value)}` : ''}` + `},`;
+          console.log("====111111111111=======", res);
+        }
+      }
+
+      if (hasRuntime) {
+        return res.slice(0, -1) + ']';
+      }
     } // 代码生成器： 使AST生成render函数的代码字符串
 
+
     function generate(ast, options) {
-      // console.log("代码生成器==",ast);
+      console.log("代码生成器==", ast);
       const state = new CodegenState(options);
       const code = ast ? genElement(ast, state) : '_c("div")';
       return {
@@ -2008,11 +2254,12 @@
             let data; // el.plain 为true 该节点没有属性，不需要执行genData
 
             if (!el.plain || el.pre && state.maybeComponent(el)) {
-              data = genData(el);
+              data = genData(el, state);
             }
 
             let children = genChildren(el, state);
             code = `_c('${el.tag}'${data ? `,${data}` : ''}${children ? `,${children}` : ''})`;
+            console.log("喵喵code", code);
             return code;
           }
       }
@@ -2037,20 +2284,31 @@
 
     function genData(el, state) {
       let data = '{';
+      const dirs = genDirectives(el, state);
+
+      if (dirs) {
+        data += dirs + ',';
+      }
 
       if (el.key) {
         data += `key:${el.key},`;
       }
 
+      console.log("我欲癫狂---", el.props);
+
+      if (el.props) {
+        data += `domProps:{${genProps(el.props)}}`;
+      }
+
       if (el.ref) {
         data += `ref:${el.ref}`;
-      }
+      } // if(el.attrsList){
+      //     data += `attrs:{${genProps(el.attrsList)}}`
+      // }
 
-      if (el.attrsList) {
-        data += `attrs:{${genProps(el.attrsList)}}`;
-      }
 
       data = data.replace(/,$/, '') + '}';
+      console.log("=========我疑惑了=============", data);
       return data;
     }
 

@@ -7,6 +7,7 @@ import {
     pluckModuleFunction,
     baseWarn
  } from '../helpers'
+ import {processAttrs} from './processAttrs/index'
 
 // import {parseText} from './text-parser'
 export const onRE = /^@|^v-on:/
@@ -29,30 +30,7 @@ function makeAttrsMap(attrs){
 
 function processElement(element,options){
     processAttrs(element)
-}
 
-function processAttrs(el){
-    const list = el.attrsList
-    console.log("让我看下呀------------",el.attrsList);
-    let i, l, name, rawName, value, modifiers
-    for( i = 0, l = list.length; i< l; i++){
-        name = rawName = list[i].name
-        value = list[i].value        
-        if(dirRE.test(name)){ // 匹配 v- @ : 开头的属性
-            // mark element as dynamic
-            el.hasBindings = true
-            /**处理修饰符*/
-            modifiers = parseModifiers(name)
-        }else{
-
-        }
-    }
-
-}
-
-function parseModifiers(name){
-    const match = name.match(modifierRE)
-    // to do
 }
 
 const currentParent = null
@@ -130,7 +108,7 @@ export function parse(template,options){
             let element = createASTElement(tag,attrs,parent)
 
             // apply pre-transforms
-            for (let i = 0; i < preTransforms.length; i++) {
+            for (let i = 0; i < preTransforms.length; i++) {                
                 element = preTransforms[i](element, options) || element
             }
 
@@ -142,6 +120,8 @@ export function parse(template,options){
                 
                 processElement(element,options)
             }
+
+            console.log("================",element);
 
             if(!root){
                 root = element

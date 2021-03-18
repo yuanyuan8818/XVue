@@ -1,5 +1,5 @@
 import {parseFilters} from './parser/filter-parser'
-
+import {emptyObject} from '@/shared/util'
 export function getAndRemoveAttr(el,name,removeFromMap){    
     let val     
     /**
@@ -50,6 +50,54 @@ export function getBindingAttr(el,name,getStatic){
 
 export function addHandler(el,name,value,modifiers,important,warn,range,dynamic){
     modifiers = modifiers || emptyObject
+    modifiers = modifiers || emptyObject
+    if(modifiers.capture){
+        delete modifiers.capture
+        name = '!' + name
+    }
+    if(modifiers.once){
+        delete modifiers.once
+        name = '~' + name
+    }
+    if(modifiers.passive){
+        delete modifiers.passive
+        name = '&' + name
+    }
+    if(name === 'click'){
+        if(modifiers.right){  // right修饰符标识右击
+            name = 'contextmenu'  // 右击会触发contextmenu事件 弹出一个菜单
+            delete modifiers.right
+        }else if(modifiers.middle){  // middle 滚轮事件
+            name = 'mouseup'
+            delete 'mouseup'
+        }
+    }
+
+    let events
+    if (modifiers.native) {
+        delete modifiers.native
+        events = el.nativeEvents || (el.nativeEvents = {})
+    } else {
+        events = el.events || (el.events = {})
+    }
+
+    const newHandler = {value}
+    if(modifiers !== emptyObject){
+        newHandler.modifiers = modifiers
+    }
+
+    const handlers = events[name]
+    if(Array.isArray(handlers)){
+
+    }else if(handlers){
+
+    }else{
+        events[name] = newHandler
+    }
+
+
+
+
 }
 
 export function addRawAttr(el,name,value,range){
@@ -64,3 +112,14 @@ export function pluckModuleFunction(modules,key){
 export function baseWarn(msg,rang){
     console.error(`[Vue compiler]: ${msg}`)
 }
+
+export function addDirective(el,name,rawName,value,arg,modifiers){
+    console.log("el.directives.........指令---",el);
+    (el.directives || (el.directives = [])).push({name,rawName,value,arg,modifiers})
+    el.plain = false
+}
+
+export function addProp (el, name, value, range, dynamic) {
+    (el.props || (el.props = [])).push({ name, value, dynamic })
+    el.plain = false
+  }
