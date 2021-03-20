@@ -8,7 +8,7 @@
 </head>
 <body>    
     <div id="app">                
-        <span>我的名字{{name}},请多多指教！</span>             
+        <div>我的名字{{name}},我正在学习中！</div>             
         <input type="text" v-model="phone">
         <span>{{phone}}</span>
     </div>
@@ -16,10 +16,9 @@
         let vm = new XVue({
             el: '#app',                   
             data: {
-                    name:'小圆子',
+                    name:'XVue',
                     age: 15,
-                    phone: '168293',
-                    // vvmodel: '处理v-model',
+                    phone: '168293',                    
                     info:{
                         job: 'coder',
                         hobby: 'cloth'

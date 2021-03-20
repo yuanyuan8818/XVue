@@ -10,10 +10,9 @@ import {generate} from './codegen/index'
 export const createCompier = createCompilerCreator(function baseCompile(template,options){
     // 抽象语法树    
     const ast = parse(template.trim(), options)
-    console.log("经过词法分析和句法分析，生成ast",ast);
+    console.log("ast",ast);
     optimize(ast,options)
-    const code = generate(ast,options)
-    
+    const code = generate(ast,options)    
     return {
         ast,
         render: code.render,        

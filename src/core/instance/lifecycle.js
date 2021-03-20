@@ -12,23 +12,26 @@ export function initLifecycle(vm){
 export function callHook(vm,hook){    
     const handlers = vm.$options[hook]
     if(handlers){
-        handlers.call(vm)
+        for(let i = 0, j = handlers.length; i <j ; i++){            
+            try{
+                handlers[i].call(vm)
+            }catch(e){
+                console.error(`[XVue]:  ${hook} hook`)
+            }
+        }        
     }           
 }
 
-// 完成挂载工作
+// 挂载
 export function mountComponent(vm,el,hydrating){
     vm.$el = el 
-    callHook(vm,'beforMount')
+    callHook(vm,'beforeMount')
     let updateComponent
     // updateComponent把渲染函数生成的虚拟DOM渲染成真正的DOM
-    updateComponent = ()=>{
-        // vm._render() 生成vnode
-        // vm._update() 通过虚拟DOM的补丁算法来完成
-        // vm._update(vm._render(),hydrating)
+    updateComponent = ()=>{            
         const vnode = vm._render()
-        vm._update(vnode,hydrating)
-        console.log("执行渲染函数生成vnode， 将vnode转化为真实dom",vnode)
+        console.log("vnode: ",vnode);
+        vm._update(vnode,hydrating)        
     }
 
     // 渲染函数的watcher

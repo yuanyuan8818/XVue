@@ -298,24 +298,27 @@
       const handlers = vm.$options[hook];
 
       if (handlers) {
-        handlers.call(vm);
+        for (let i = 0, j = handlers.length; i < j; i++) {
+          try {
+            handlers[i].call(vm);
+          } catch (e) {
+            console.error(`[XVue]:  ${hook} hook`);
+          }
+        }
       }
-    } // 完成挂载工作
+    } // 挂载
 
     function mountComponent(vm, el, hydrating) {
       vm.$el = el;
-      callHook(vm, 'beforMount');
+      callHook(vm, 'beforeMount');
       let updateComponent; // updateComponent把渲染函数生成的虚拟DOM渲染成真正的DOM
 
       updateComponent = () => {
-        // vm._render() 生成vnode
-        // vm._update() 通过虚拟DOM的补丁算法来完成
-        // vm._update(vm._render(),hydrating)
         const vnode = vm._render();
 
-        vm._update(vnode, hydrating);
+        console.log("vnode: ", vnode);
 
-        console.log("执行渲染函数生成vnode， 将vnode转化为真实dom", vnode);
+        vm._update(vnode, hydrating);
       }; // 渲染函数的watcher
 
 
@@ -1145,12 +1148,11 @@
 
           this.observeArray(value);
         } else {
-          console.log("_&&&&&_________________", value);
           this.walk(value);
         }
       }
       /**
-       * 遍历obj, 给每个属性都设置响应式子
+       * 遍历obj, 给每个属性都设置响应式
        * @param {*} obj 
        */
 
@@ -1187,7 +1189,7 @@
         try {
           ob = new Observer(value);
         } catch (e) {
-          console.log("++++++++++", ob);
+          console.error('[XVue: ] Observer error');
         }
       }
 
@@ -1230,7 +1232,6 @@
           }
 
           value = newVal;
-          console.log("__11111111__________set ???????????", newVal);
           childOb = observe(newVal);
           dep.notify();
         }
@@ -2829,7 +2830,7 @@
     const createCompier = createCompilerCreator(function baseCompile(template, options) {
       // 抽象语法树    
       const ast = parse(template.trim(), options);
-      console.log("经过词法分析和句法分析，生成ast", ast);
+      console.log("ast", ast);
       optimize(ast, options);
       const code = generate(ast, options);
       return {
@@ -2846,8 +2847,8 @@
 
     /**
      * XVue的生命周期：
-     *  从new XVue创建、初始化数据、编译模板、挂载DOM和渲染、更新和渲染、卸载等的一系列过程 
-     *  */
+     * 从new XVue创建、初始化数据、编译模板、挂载DOM和渲染、更新和渲染、卸载等的一系列过程  
+     * */
 
     function XVue$1(options) {
       this._init(options);
@@ -2858,12 +2859,6 @@
     XVue$1.prototype._init = function (options) {
       const vm = this;
       vm.uid = uid++;
-      vm.$options = options; // vm.$options = mergeOptions(
-      //     Vue.options,
-      //     options || {},
-      //     vm
-      // )
-
       vm.$options = options;
       initLifecycle(vm);
       initEvents(vm);
@@ -2891,14 +2886,14 @@
 
         if (!template && el) {
           template = el.outerHTML;
-        }
+        } //template经过编译后得到render
+
 
         const {
           render
         } = compileToFunction(template, {}, vm);
         options.render = render;
-      } // 如render存在，调用mountComponent
-      //    return mount.call(this, el, hydrating)
+      } //挂载
 
 
       mountComponent(vm, el, hydrating);
