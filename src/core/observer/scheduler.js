@@ -26,14 +26,15 @@ function flushSchedulerQueue(){
         has[id] = null
         watcher.run()
     }
-
+    waiting = false
 }
 
 // queue中的所有观察者会在突变完成之后同一执行更新
 export function queueWatcher(watcher){
     const id = watcher.id
+    console.log("观察者的 id",id);
     // has[id] 用来避免重复入队的
-    if(has[id] == null){
+    // if(has[id] == null){
         has[id] = true
         if(!flushing){
             //将观察放入队列中
@@ -51,8 +52,9 @@ export function queueWatcher(watcher){
                 //  同步执行
             //     flushSchedulerQueue()   
             // }            
+            console.log("等~~");
             nextTick(flushSchedulerQueue)       
         }
         
-    }
+    // }
 }

@@ -1,93 +1,128 @@
-// import { getBindingAttr } from "../../Compiler/helpers"
-// import { createASTElement, processFor } from "../../Compiler/parser"
-import {
-    getBindingAttr,
-    getAndRemoveAttr,
-    addRawAttr
-} from 'compiler/helpers'
+import { addHandler,addProp } from "../helpers"
 
-import {
-    processFor,
-    processElement,
-    addIfCondition,
-    createASTElement
-  } from 'Compiler/parser/index'
+export default function model(el,dir,_warn){
+    const value = dir.value
+    const tag = el.tag 
+    const type = el.attrsMap.type
 
-function preTransformNode(el,options){
-    //处理的是 绑定v-model的input标签的type属性
-    if(el.tag === 'input'){
-        const map = el.attrsMap
-        if(!map['v-model']){
-            return
-        }
-
-        let typeBinding
-        if(map[':type'] || map['v-bind:type']){
-            typeBinding = getBindingAttr(el,'type')
-        }
-        if(!map.type && !typeBinding && map['v-bind']){ 
-            // <input v-model="val" v-bind="{type: inputType}">
-            typeBinding = `(${map['v-bind']}).type`
-        }
-        if(typeBinding){
-            const ifConditions = getAndRemoveAttr(el,'v-if',true)
-            const ifConditionExtra = ifCondition ? `&&(${ifCondition})` : ``
-            const hasElse = getAndRemoveAttr(el,'v-else', true) !=null
-            const elseIfCondition = getAndRemoveAttr(el,'v-else-if',true)
-            /* preTransformNode函数的作用是将一个拥有绑定类型(type)的v-model指令的input标签
-            *  扩展为三个input标签，这三个input标签分别是复选按钮(checkbox)、单选按钮(radio)和其他input标签
-            **/
-            // 1. checkbox
-            const branch0 = cloneASTElement(el)
-            // process for on the main node
-            processFor(branch0)
-            addRawAttr(branch0,'type','checkbox')
-            processElement(branch0,'type','checkbox')
-            branch0.processed = true
-            /* <input v-model='val' :type="inputType" v-if="display" />
-            * el.if属性为 '(${inputType}) === 'checkbox'&&display'  inputType为checkbox且本地状态display为真才会渲染该复选按钮*/
-            branch0.if = `(${typeBinding}) === 'checkbox'` + ifConditionExtra
-            addIfCondition(branch0,{
-                exp: branch0.if,
-                block: branch0
-            })
-            // 2. add radio else-if condition            
-            const branch1 = cloneASTElement(el)
-            /* 单纯的将克隆出来的元素描述对象中的v-for属性移除掉,因为在复选按钮中已经使用processFor处理过了v-for指令
-             * 由于它们本是互斥的,其本质上等价于是同一个元素，只是根据不同的条件渲染不同的标签罢了，所以v-for指令处理一次就够了*/
-            getAndRemoveAttr(branch1, 'v-for', true)             
-            addRawAttr(branch1, 'type', 'radio')
-            processElement(branch1,options)
-            addIfCondition(branch0,{
-                exp: `(${typeBinding} === 'radio')` + ifConditionExtra,
-                block: branch1
-            })
-             // 3. other
-            const branch2 = cloneASTElement(el)
-            getAndRemoveAttr(branch2, 'v-for', true)
-            addRawAttr(branch2, ':type', typeBinding)
-            processElement(branch2, options)
-            addIfCondition(branch0, {
-                exp: ifCondition,
-                block: branch2
-            })
-
-            if (hasElse) {
-                branch0.else = true
-              } else if (elseIfCondition) {
-                branch0.elseif = elseIfCondition
-              }
-        
-            return branch0
-            
-        }
-    }   
+    if(el.component){
+        genComponentModel(el,value)
+    }else if(tag === 'select'){
+        genSelect(el,value)            
+    }else if(tag === 'input' && type === 'checkbox'){
+        genCheckboxModel(el,value)
+    }else if(tag === 'input' && type == 'radio'){
+        genRadioModel(el, value);
+    }else if(tag === 'input' || tag === 'textarea'){
+        genDefaultModel(el,value)
+    }else if(!isHTMLTag(tag)){
+        return false
+    }else{
+            warn(`<${el.tag} m-model="${value}">: ` +
+            `m-model is not supported on this element type. `)
+    }    
+    return true
 }
 
-function cloneASTElement(el){
-    return createASTElement(el.tag, el.attrsList.slice(), el.parent)
+
+function genSelect(el,value){
+
 }
 
-export default {
-    preTransformNode
+function genCheckboxModel(){
+
+}
+
+function genRadioModel(){
+
+}
+
+function onCompositionStart (e) {
+    e.target.composing = true
+}
+
+function onCompositionEnd (e) {
+    // prevent triggering an input event for no reason
+    if (!e.target.composing) return
+    e.target.composing = false
+    // trigger(e.target, 'input')
+  }
+
+  function trigger (el, type) {
+    const e = document.createEvent('HTMLEvents')
+    e.initEvent(type, true, true)
+    el.dispatchEvent(e)
+  }
+  
+
+
+const directive = {
+    inserted(el,binding,vnode,oldVnode){
+        if(vnode.tag === 'select'){
+
+        }else if(vnode.tag === 'textarea') {
+            el.addEventListener('compositionstart', onCompositionStart)
+        }
+
+    }
+}
+
+/**
+ * 对input输入框 textarea处理
+ */
+function genDefaultModel(el,value){
+    const type = el.attrsMap.type;
+    {
+        const value = el.attrsMap['v-bind:value'] || el.attrsMap[':value']
+        if(value){
+            const binding = el.attrsMap['v-bind:value'] ? 'v-bind:value' : ':value'
+            warn(`${binding}="${value}" conflicts with v-model on the same element `)
+        }
+    }
+
+    const needComposiion = type !== 'range';
+    const event = type === 'range' ? '__r' : 'input';
+    let valueExpression = `$event.target.value`;
+    let code = genAssignmentCode(value, valueExpression);    
+    console.log("+=====!!!!!!!!!!!!!!!!!!!!!!!!!==",code);
+    if (needComposiion) {        
+        code = `if($event.target.composingTT)return;${code}`
+    }
+    addProp(el, 'value', `(${value})`);
+    addHandler(el, event, code, null, true);
+
+}
+
+function genAssignmentCode(value, assignment) {
+    const res = parseModel(value);
+    if (res.key === null) {
+        return `${value} =${assignment};`
+    } else {
+        return `$set(${res.exp},${res.key},${assignment})`
+    }
+}
+
+// 处理m-model="obj.val"
+// 暂不处理带[]的
+function parseModel(val) {
+    val = val.trim();
+    let len = val.length;
+
+    // 1. m-model = "name"
+    // 2. m-model = "obj[name].age"
+    // 3. m-model = "obj.name.age"
+    if (val.indexOf('[') < 0 || val.lastIndexOf(']') < len - 1) {
+        let index = val.lastIndexOf('.');
+        if (index > -1) {
+            return {
+                exp: val.slice(0, index),
+                key: JSON.stringify(val.slice(index + 1))
+            }
+        } else {
+            return {
+                exp: val,
+                key: null
+            }
+        }
+    }
 }

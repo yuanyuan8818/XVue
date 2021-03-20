@@ -7,8 +7,7 @@
     <script src="dist/xvue.js"></script>
 </head>
 <body>    
-    <div id="app">
-        <h2>Let's Test My XVue!</h2>        
+    <div id="app">                
         <span>我的名字{{name}},请多多指教！</span>             
         <input type="text" v-model="phone">
         <span>{{phone}}</span>
@@ -24,20 +23,12 @@
                     info:{
                         job: 'coder',
                         hobby: 'cloth'
-                    },
-                    // arr: [1,3,4, [0,34,4],44],
-                    // list: ["step1","step2","step3"]
-                    // list: [{"val_01": '01', "index": '01'},{"val_02": '02', "index": '02'}]
+                    },                    
                 },
             beforeCreate(){
                 console.log("beforeCreate");                
             },
-            mounted(){                                
-                // console.log("==========",this.name);
-                let _this = this
-                // setTimeout(()=>{
-                //         _this.name = "小仙女"
-                // },500)
+            mounted(){                                                
             },
             methods:{
                 filterFn(){

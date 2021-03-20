@@ -92,7 +92,7 @@ export default class Watcher{
         while(i--){
             const dep = this.deps[i]
             if(!this.newDepIds.has(dep.id)){
-                dep.removeSub(this)
+                // dep.removeSub(this)
             }
         }
         let tmp = this.depIds

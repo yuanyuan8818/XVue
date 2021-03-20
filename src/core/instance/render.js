@@ -5,6 +5,7 @@ import {warn} from '@/core/util/index'
 import { mountElement } from '../mount-helper/element'
 import { mountText } from '../mount-helper/text'
 import { VNodeFlags } from '../vdom/vnode'
+import {patch} from '../vdom/patch.js'
 export function initRender(vm){
     vm._vnode = null
     vm._staticTrees = null
@@ -16,10 +17,11 @@ export function initRender(vm){
     XVue.prototype._update = function(vnode,hy){
         const vm = this 
         let container = vm.$el;
-        const prevVNode = vm._vnode;
+        const prevVNode = vm._vnode;        
         const parent = vm.$parent
         let parentElm = null 
 
+        console.log("————————————————————————————————————要重新更新吗？",prevVNode);
         if(prevVNode == null){
             // 没有旧的VNode， 使用"mounnt"函数挂在全新的VNode
             if(!parent){
@@ -32,17 +34,23 @@ export function initRender(vm){
             }
             if(vnode){
                 mount(vnode,container)
-                container.vnode = vnode
+                vm._vnode = vnode
+                vm.$el = vnode.el
+                // container.vnode = vnode
             }            
         }else{
             if(vnode){
                 //有旧的VNode, 则调用'patch'函数打补丁
+                console.log("打补吗？？？？？？？？！！！！！！！！！！！！！！",patch);
                 patch(prevVNode,vnode,container)            
-                container.vnode = vnode
+                // container.vnode = vnode
+                vm._vnode = vnode 
+                vm.$el = vnode.el
             }else{
                 // 有旧的vnode，但是没有新的vnode，直接移除旧的
                 container.removeChild(prevVNode.el)
-                container.vnode = null
+                // container.vnode = null
+                vm._vnode = null
             }            
         }
 
@@ -69,7 +77,7 @@ export function initRender(vm){
 export function mount(vnode,container,refVNode){
     const flags = vnode.flags    
     if(flags & VNodeFlags.ELEMENT){        
-        // 挂载普通标签
+        // 挂载普通标签        
         mountElement(vnode,container,refVNode)
     }else if(flags & VNodeFlags.COMPONENT){
         // 挂载组件

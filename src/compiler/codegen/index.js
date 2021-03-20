@@ -1,6 +1,5 @@
-
-import directives from '../directives/index'
 import baseDirectives from '../directives/index'
+import {genHandlers} from './events'
 
 export class CodegenState{
     constructor(options){
@@ -25,7 +24,7 @@ function genDirectives(el,state){
             needRuntime = !!gen(el,dir,state.warn)
         }
 
-        console.log("=======成语借楼======",);
+        // console.log("=======成语借楼======",);
         // v-model, v-show
         if(needRuntime){
             hasRuntime = true
@@ -47,7 +46,8 @@ function genDirectives(el,state){
 export function generate(ast,options){
     console.log("代码生成器==",ast);
     const state = new CodegenState(options)        
-    const code = ast ? genElement(ast,state): '_c("div")'    
+    const code = ast ? genElement(ast,state): '_c("div")'  
+    console.log("+++++++++++++++++++++",code);  
     return {                
         render: createFunction(`with(this){return ${code}}`),        
         staticRenderFns: state.staticRenderFns
@@ -88,8 +88,7 @@ export function genElement(el,state){
             }
 
             let children = genChildren(el,state,true)
-            code = `_c('${el.tag}'${data?`,${data}`:''}${children?`,${children}`: ''})`                
-            console.log("喵喵code",code);
+            code = `_c('${el.tag}'${data?`,${data}`:''}${children?`,${children}`: ''})`                            
             return code
         }
 
@@ -123,13 +122,16 @@ function genData(el,state){
         data += `key:${el.key},`
     }
 
-    console.log("我欲癫狂---",el.props);
+    // console.log("我欲癫狂---",el.props);
 
     if(el.props){
-        data += `domProps:{${genProps(el.props)}}`
+        data += `domProps:{${genProps(el.props)}},`
     }
 
-
+    if(el.events){
+        data += `${genHandlers(el.events,false)},`
+    }
+    
     if(el.ref){
         data += `ref:${el.ref}`
     }
@@ -138,7 +140,7 @@ function genData(el,state){
     // }
     data = data.replace(/,$/,'') + '}'
 
-    console.log("=========我疑惑了=============",data);
+    // console.log("=========我疑惑了=============",data);
     return data
 }
 

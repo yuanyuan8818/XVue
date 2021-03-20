@@ -4,14 +4,14 @@ import { mount } from "../instance/render";
 
 const domPropsRE = /\[A-Z]|^(?:value|checked|selected|muted)$/;
 export function mountElement(vnode,container,refVNode){
-    const el = document.createElement(vnode.tag)    
-    console.log("真是的=======",el);
+    const el = document.createElement(vnode.tag)        
     vnode.el = el
-    // 将vnodeData应用到元素上
-    const data = vnode.data.attrs
+    // 将vnodeData应用到元素上        
+    const data = vnode.data.attrs || vnode.data 
+    console.log("====^^^^^^^^^^^^^^==========^^^^^^^^^^^^^======",vnode.data);
     if(data){        
         for(let key in data){
-            // key可能是calss style on 等等
+            // key可能是calss style on 等等            
             switch(key){
                 case 'style':                    
                     el.style = data.style
@@ -22,6 +22,14 @@ export function mountElement(vnode,container,refVNode){
                 default:                
                     if(key[0] === 'o' && key[1] == 'n'){
                         el.addEventListener(key.slice(2),data[key])
+
+                        if(key === 'on'){
+                            let events = data[key]                            
+                            for(let name in events){            
+                                console.log("难道你没有改变吗？？？？？？？？？？？？？？",el);                                                    
+                                el.addEventListener(name,events[name])
+                            }
+                        }
                     }else if(domPropsRE.test(key)){
                         /** Properties(DOM Prop) 和 Attributes
                          * 1. 标准属性，DOM prop 如 id <body id = 'page'></body>
@@ -29,11 +37,20 @@ export function mountElement(vnode,container,refVNode){
                          * 2. 非标属性，Attributes <body custom="val">
                          *  当尝试通过document.body.custom 访问不了
                         */
-                        // 当作DOM Prop处理                                
+                        // 当作DOM Prop处理
+                        console.log("DOM Prop:::::::::::::::::",key);                                
                         el[key] = nextVNode
                     }else {
                         // 当作Attr处理
-                        el.setAttribute(key,data[key])                
+                        if(key === 'domProps'){
+                            let item = data[key]
+                            console.log(" 瞧一瞧",item);
+                            for(let it in item){
+                                el[it] = item[it]
+                            }
+                        }
+                        console.log("    Attr ::::::::::: ",key);                                 
+                        // el.setAttribute(key,data[key])                
                     }        
                     break
             }
@@ -52,5 +69,6 @@ export function mountElement(vnode,container,refVNode){
             }            
         }
     }        
+    console.log("=====你在这里调用了？？？？？=====",container);
     refVNode ? container.insertBefore(el,refVNode) : container.appendChild(el)
 }

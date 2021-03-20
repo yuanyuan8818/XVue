@@ -29,7 +29,8 @@ export function cached(fn){
     })
 }
 
-export function toString(val) {    
+export function toString(val) {  
+    console.log("看看这里的数据版》》 找找val",val);  
     return val == null ?
         '' :
         typeof val === 'object' ?

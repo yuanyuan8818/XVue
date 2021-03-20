@@ -120,9 +120,7 @@ export function parse(template,options){
                 
                 processElement(element,options)
             }
-
-            console.log("================",element);
-
+            
             if(!root){
                 root = element
                 checkRootConstraints(root)

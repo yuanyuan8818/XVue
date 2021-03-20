@@ -32,11 +32,11 @@ if(typeof Promise !== 'undefined' ){
 export function nextTick(cb,ctx){
     let _resolve
 
-    callHook.push(()=>{
+    callbacks.push(()=>{
         try{
             cb.call(ctx)
         } catch(e){
-            handleError(e,ctx, 'nextTick')
+            console.error(`[XVue error]: `,e)
         }        
     })
 

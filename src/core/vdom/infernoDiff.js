@@ -5,6 +5,10 @@ import { patch } from "./patch"
 
 export function infernoDiff(prevChildren,nextChildren,container){
     let j = 0
+    let prevEnd 
+    let nextEnd
+    console.log("庙里个喵喵*********-----",prevChildren.length);
+    console.log("啷里格-----",prevChildren);
     outer:{
         while(j<prevChildren.length && j < nextChildren.length){
             if(prevChildren[j].key == nextChildren[j].key){
@@ -18,8 +22,9 @@ export function infernoDiff(prevChildren,nextChildren,container){
             }
         }
     
-        let prevEnd = prevChildren.length - 1
-        let nextEnd = nextChildren.length - 1
+        
+        prevEnd = prevChildren.length - 1
+        nextEnd = nextChildren.length - 1
         while(prevEnd > 0 && nextEnd > 0){
             if(prevChildren[prevEnd].key == nextChildren[nextEnd].key){
                 patch(prevChildren[prevEnd],nextChildren[nextEnd],container)

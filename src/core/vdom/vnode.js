@@ -78,6 +78,7 @@ export function h(tag, data = null, children = null, chldrenDeep){
     }
 
     let childFlags = null
+    console.log("^^^^^^^^^^^^^^^^^^^^: children",children);
     if(Array.isArray(children)){
         let {length} = children
         if(length == 0){
@@ -95,7 +96,8 @@ export function h(tag, data = null, children = null, chldrenDeep){
     }else if(children == null){
         // 没有子节点
         childFlags = ChildrenFlags.NO_CHILDREN
-    }else if(children._isVNode){
+    }else if( children ){
+        // if(children._isVNode)
         // 单个子节点
         childFlags = ChildrenFlags.SINGLE_VNODE
     }else {
@@ -103,6 +105,7 @@ export function h(tag, data = null, children = null, chldrenDeep){
         children = createTextVNode(children + '')
     }
     
+    console.log("dddddddddd");
     let vnode = {
         _isVNode: true,
         flags,
@@ -112,6 +115,8 @@ export function h(tag, data = null, children = null, chldrenDeep){
         childFlags,
         el:null
     }    
+
+    // console.log("看下蹙额你**********************",vnode);
     return vnode
 
     // return {

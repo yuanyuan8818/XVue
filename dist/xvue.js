@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('@/util/index.js'), require('@/util/options.js'), require('src/core/util'), require('web/util/style'), require('compiler/helpers'), require('Compiler/parser/index')) :
-    typeof define === 'function' && define.amd ? define(['@/util/index.js', '@/util/options.js', 'src/core/util', 'web/util/style', 'compiler/helpers', 'Compiler/parser/index'], factory) :
-    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.XVue = factory(global.index_js, null, global.util, global.style$1, global.helpers, global.index$1));
-}(this, (function (index_js, options_js, util, style$1, helpers, index$1) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('@/util/index.js'), require('@/util/options.js'), require('src/core/util'), require('web/util/style')) :
+    typeof define === 'function' && define.amd ? define(['@/util/index.js', '@/util/options.js', 'src/core/util', 'web/util/style'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.XVue = factory(global.index_js, null, global.util, global.style$1));
+}(this, (function (index_js, options_js, util, style$1) { 'use strict';
 
     const bailRE = /[^\w.$]/;
     function parsePath(path) {
@@ -122,11 +122,11 @@
 
     function nextTick(cb, ctx) {
 
-      callHook.push(() => {
+      callbacks.push(() => {
         try {
           cb.call(ctx);
         } catch (e) {
-          handleError(e, ctx, 'nextTick');
+          console.error(`[XVue error]: `, e);
         }
       });
 
@@ -137,14 +137,13 @@
     }
 
     const queue = [];
-    let has = {};
     let flushing = false;
     let waiting = false;
     let index = 0;
 
     function flushSchedulerQueue() {
       flushing = true;
-      let watcher, id; // Sort queue before flush
+      let watcher; // Sort queue before flush
       // 1. Components are updated from parent to child. (because parent is always
       //    created before the child)
       // 2. A component's user watchers are run before its render watcher (because
@@ -156,34 +155,34 @@
 
       for (index = 0; index < queue.length; index++) {
         watcher = queue[index];
-        id = watcher.id;
-        has[id] = null;
+        watcher.id;
         watcher.run();
       }
+
+      waiting = false;
     } // queue中的所有观察者会在突变完成之后同一执行更新
 
 
     function queueWatcher(watcher) {
-      const id = watcher.id; // has[id] 用来避免重复入队的
+      const id = watcher.id;
+      console.log("观察者的 id", id); // has[id] 用来避免重复入队的
 
-      if (has[id] == null) {
-        has[id] = true;
-
-        if (!flushing) {
-          //将观察放入队列中
-          queue.push(watcher);
-        } // queue the flush 
+      if (!flushing) {
+        //将观察放入队列中
+        queue.push(watcher);
+      } // queue the flush 
 
 
-        if (!waiting) {
-          waiting = true; // if( !config.async){
-          //  同步执行
-          //     flushSchedulerQueue()   
-          // }            
+      if (!waiting) {
+        waiting = true; // if( !config.async){
+        //  同步执行
+        //     flushSchedulerQueue()   
+        // }            
 
-          nextTick(flushSchedulerQueue);
-        }
-      }
+        console.log("等~~");
+        nextTick(flushSchedulerQueue);
+      } // }
+
     }
 
     let uid$1 = 0;
@@ -273,9 +272,7 @@
         while (i--) {
           const dep = this.deps[i];
 
-          if (!this.newDepIds.has(dep.id)) {
-            dep.removeSub(this);
-          }
+          if (!this.newDepIds.has(dep.id)) ;
         }
 
         let tmp = this.depIds;
@@ -297,7 +294,7 @@
       vm._isMounted = false;
       vm._isDestroyed = false;
     }
-    function callHook$1(vm, hook) {
+    function callHook(vm, hook) {
       const handlers = vm.$options[hook];
 
       if (handlers) {
@@ -307,7 +304,7 @@
 
     function mountComponent(vm, el, hydrating) {
       vm.$el = el;
-      callHook$1(vm, 'beforMount');
+      callHook(vm, 'beforMount');
       let updateComponent; // updateComponent把渲染函数生成的虚拟DOM渲染成真正的DOM
 
       updateComponent = () => {
@@ -326,7 +323,7 @@
 
       if (vm.$vnode == null) {
         vm._isMounted = true;
-        callHook$1(vm, 'mounted');
+        callHook(vm, 'mounted');
       }
 
       return vm;
@@ -404,6 +401,7 @@
       }
 
       let childFlags = null;
+      console.log("^^^^^^^^^^^^^^^^^^^^: children", children);
 
       if (Array.isArray(children)) {
         let {
@@ -424,7 +422,8 @@
       } else if (children == null) {
         // 没有子节点
         childFlags = ChildrenFlags.NO_CHILDREN;
-      } else if (children._isVNode) {
+      } else if (children) {
+        // if(children._isVNode)
         // 单个子节点
         childFlags = ChildrenFlags.SINGLE_VNODE;
       } else {
@@ -432,6 +431,7 @@
         children = createTextVNode(children + '');
       }
 
+      console.log("dddddddddd");
       let vnode = {
         _isVNode: true,
         flags,
@@ -440,7 +440,8 @@
         children,
         childFlags,
         el: null
-      };
+      }; // console.log("看下蹙额你**********************",vnode);
+
       return vnode; // return {
       //     _isVNode: true,
       //     flags,
@@ -530,6 +531,7 @@
       };
     }
     function toString(val) {
+      console.log("看看这里的数据版》》 找找val", val);
       return val == null ? '' : typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val);
     }
 
@@ -540,17 +542,17 @@
       target._l = renderList;
     }
 
-    const domPropsRE = /\[A-Z]|^(?:value|checked|selected|muted)$/;
+    const domPropsRE$1 = /\[A-Z]|^(?:value|checked|selected|muted)$/;
     function mountElement(vnode, container, refVNode) {
       const el = document.createElement(vnode.tag);
-      console.log("真是的=======", el);
-      vnode.el = el; // 将vnodeData应用到元素上
+      vnode.el = el; // 将vnodeData应用到元素上        
 
-      const data = vnode.data.attrs;
+      const data = vnode.data.attrs || vnode.data;
+      console.log("====^^^^^^^^^^^^^^==========^^^^^^^^^^^^^======", vnode.data);
 
       if (data) {
         for (let key in data) {
-          // key可能是calss style on 等等
+          // key可能是calss style on 等等            
           switch (key) {
             case 'style':
               el.style = data.style;
@@ -563,18 +565,37 @@
             default:
               if (key[0] === 'o' && key[1] == 'n') {
                 el.addEventListener(key.slice(2), data[key]);
-              } else if (domPropsRE.test(key)) {
+
+                if (key === 'on') {
+                  let events = data[key];
+
+                  for (let name in events) {
+                    console.log("难道你没有改变吗？？？？？？？？？？？？？？", el);
+                    el.addEventListener(name, events[name]);
+                  }
+                }
+              } else if (domPropsRE$1.test(key)) {
                 /** Properties(DOM Prop) 和 Attributes
                  * 1. 标准属性，DOM prop 如 id <body id = 'page'></body>
                  * 可以通过 document.body.id来访问，也可以document.body[id] 直接设置
                  * 2. 非标属性，Attributes <body custom="val">
                  *  当尝试通过document.body.custom 访问不了
                 */
-                // 当作DOM Prop处理                                
+                // 当作DOM Prop处理
+                console.log("DOM Prop:::::::::::::::::", key);
                 el[key] = nextVNode;
               } else {
                 // 当作Attr处理
-                el.setAttribute(key, data[key]);
+                if (key === 'domProps') {
+                  let item = data[key];
+                  console.log(" 瞧一瞧", item);
+
+                  for (let it in item) {
+                    el[it] = item[it];
+                  }
+                }
+
+                console.log("    Attr ::::::::::: ", key); // el.setAttribute(key,data[key])                
               }
 
               break;
@@ -589,14 +610,15 @@
       if (childFlags !== ChildrenFlags.NO_CHILDREN) {
         if (childFlags & ChildrenFlags.SINGLE_VNODE) {
           // 单个子节点，直接mout
-          mount(children, el);
+          mount$1(children, el);
         } else if (childFlags & ChildrenFlags.MULTIPLE_VNODES) {
           for (let i = 0; i < vnode.children.length; i++) {
-            mount(children[i], el);
+            mount$1(children[i], el);
           }
         }
       }
 
+      console.log("=====你在这里调用了？？？？？=====", container);
       refVNode ? container.insertBefore(el, refVNode) : container.appendChild(el);
     }
 
@@ -604,6 +626,411 @@
       const el = document.createTextNode(vnode.children);
       vnode.el = el;
       container.appendChild(el);
+    }
+
+    function infernoDiff(prevChildren, nextChildren, container) {
+      let j = 0;
+      let prevEnd;
+      let nextEnd;
+      console.log("庙里个喵喵*********-----", prevChildren.length);
+      console.log("啷里格-----", prevChildren);
+
+      outer: {
+        while (j < prevChildren.length && j < nextChildren.length) {
+          if (prevChildren[j].key == nextChildren[j].key) {
+            patch(prevChildren[j], nextChildren[j], container);
+            j++;
+          } else {
+            break;
+          }
+
+          if (j >= nextChildren.length || j >= prevChildren.length) {
+            break outer;
+          }
+        }
+
+        prevEnd = prevChildren.length - 1;
+        nextEnd = nextChildren.length - 1;
+
+        while (prevEnd > 0 && nextEnd > 0) {
+          if (prevChildren[prevEnd].key == nextChildren[nextEnd].key) {
+            patch(prevChildren[prevEnd], nextChildren[nextEnd], container);
+            prevEnd--;
+            nextEnd--;
+          } else {
+            break;
+          }
+
+          if (j >= nextChildren.length || j >= prevChildren.length) {
+            break outer;
+          }
+        }
+      }
+
+      if (j > prevEnd && j <= nextEnd) {
+        // 旧节点先遍历完，新节点还有剩余,需挂载剩余的新节点
+        for (let i = j; i <= nextEnd; i++) {
+          mount(nextChildren[i], container, nextChildren[prevEnd + 1].el);
+        }
+      } else if (j > nextEnd) {
+        // 新节点先遍历完，需删除多余的旧节点
+        for (let i = j; i <= prevEnd; i++) {
+          container.removeChild(prevChildren[i].el);
+        }
+      } else {
+        let source = []; // 新旧节点都没遍历完。需要移动节点
+
+        for (let i = j; i <= nextEnd - j + 1; i++) {
+          source.push(-1);
+        }
+
+        let prevStart = j;
+        let nextStart = j;
+        let moved = false;
+        let pos = 0;
+        let patched = 0; // 构建索引表
+
+        const keyIndex = {};
+
+        for (let i = nextStart; i <= nextEnd; i++) {
+          keyIndex[nextChildren[i].key] = i;
+        } //遍历旧children的剩余未处理节点
+
+
+        let prevVnode;
+
+        for (let i = prevStart; i <= prevEnd; i++) {
+          prevVnode = prevChildren[i];
+
+          if (patched < nextEnd - j + 1) {
+            //已经更新的节点数 小于 新节点剩余数目
+            const k = keyIndex[prevVnode.key];
+
+            if (k != undefined) {
+              patch(prevVnode, nextChildren[k], container);
+              patched++;
+              source[k - nextStart] = i;
+
+              if (k < pos) {
+                // 移动
+                moved = true;
+              } else {
+                pos = k;
+              }
+            } else {
+              // 不存在
+              container.removeChild(prevVnode.el);
+            }
+          } else {
+            // patched == nextEnd -j + 1 旧节点剩余的应该移除
+            container.removeChild(prevVnode.el);
+          }
+        }
+
+        if (moved) {
+          const seq = lis(source); // j指向最长递增子序列的最后一个值
+
+          let j = seq.length - 1; // 遍历source 判断哪些节点需要移动
+
+          for (let i = source.length - 1; i >= 0; i--) {
+            if (source[i] == -1) {
+              // 新节点，需要挂载
+              let pos = i + nextStart;
+              let nextPos = pos + 1;
+              mount(nextChildren[pos], container, nextPos < nextChildren.length ? nextChildren[nextPos].el : null);
+            } else {
+              //在旧节点中存在，
+              // 通过lis 尽可能减少移动
+              if (seq[j] === i) {
+                // 不需要移动
+                j--;
+              } else {
+                // seq[j]!== i  需要移动，该怎么移动？
+                // 这里处理的是剩余的新节点，并且真实的dom最后应该是按新节点顺序挂载
+                let pos = i + nextStart;
+                let nextPos = pos + 1;
+                container.insertBefore(nextChildren[pos], nextPos < nextChildren.length ? nextChildren[nextPos] : null);
+              }
+            }
+          }
+        }
+      }
+    } // 最长递增子序列
+
+    function lis(source) {
+      const lisArr = new Array(source.length).fill(1); // [0,8,4,12,2,10]
+
+      for (let i = source.length - 2; i >= 0; i--) {
+        let max = 1;
+
+        for (let j = i + 1; j < source.length; j++) {
+          if (source[i] < source[j]) {
+            let tmp = lisArr[i] + lisArr[j];
+
+            if (tmp > max) {
+              max = tmp;
+            }
+          }
+        }
+
+        if (max > lisArr[i]) {
+          lisArr[i] = max;
+        }
+      }
+
+      let seq = [];
+      let maxValue = Math.max.apply(null, lisArr);
+
+      while (maxValue >= 1) {
+        let idx = lisArr.findIndex(item => item == maxValue);
+        seq.push(idx);
+        maxValue--;
+      }
+
+      return seq;
+    }
+
+    const domPropsRE = /\[A-Z]|^(?:value|checked|selected|muted)$/;
+    function patch(prevVNode, nextVNode, container) {
+      console.log("MMMMMMMMMMMMMMMMMMMMMMMMM", container);
+      console.log("你到底更新不？？");
+      const nextFlags = nextVNode.flags;
+      const prevFlags = prevVNode.flags;
+      console.log("哪里走》》", prevFlags);
+      console.log("哪里走》》", nextFlags); // 新旧节点是同一种类型才进行比较，不是同一种类型直接替换
+
+      if (prevFlags !== nextFlags) {
+        console.log(1111111);
+        replaceVNode(prevVNode, nextVNode, container);
+      } else if (nextFlags && VNodeFlags.ELEMENT) {
+        console.log(222222);
+        patchElement(prevVNode, nextVNode, container);
+      } else if (nextFlags & VNodeFlags.COMPONENT) {
+        console.log(3333333333);
+        patchComponent(prevVNode, nextVNode, container);
+      } else if (nextFlags & VNodeFlags.TEXT) {
+        console.log(444444444);
+        patchText(prevVNode, nextVNode);
+      } else if (nextFlags & VNodeFlags.FRAGMENT) {
+        console.log(555555);
+        patchFragment(prevVNode, nextVNode, container);
+      } else if (nextFlags & VNodeFlags.PORTAL) {
+        console.log(66);
+        patchPortal(prevVNode, nextVNode);
+      }
+
+      console.log("哪里走》》");
+    }
+
+    function replaceVNode(prevVNode, nextVNode, container) {
+      container.removeChild(prevVNode.el);
+      mount(nextVNode, container);
+    }
+    /**
+     * patch 文本节点
+    */
+
+
+    function patchText(prevVNode, nextVNode) {
+      const el = nextVNode.el = prevVNode.el;
+
+      if (prevVNode.children !== nextVNode.children) {
+        el.nodeValue = nextVNode.children;
+      }
+    }
+    /**
+     * patch 元素节点
+    */
+
+
+    function patchElement(prevVNode, nextVNode, container) {
+      // 如果新旧VNode描述的是不同标签，调用replaceVNode，新节点替换旧节点
+      console.log("新旧；；；", prevVNode, nextVNode);
+
+      if (prevVNode.tag !== nextVNode.tag) {
+        replaceVNode(prevVNode, nextVNode, container);
+        return;
+      }
+
+      const el = nextVNode.el = prevVNode.el;
+      const prevData = prevVNode.data;
+      const nextData = nextVNode.data; // if(prevData == null && nextData == null  ){
+      //     console.log("气死");
+      //     return
+      // }
+
+      console.log("秒~~~啊~~~~·", nextData); // 新的VNodeData存在时才有必要更新
+
+      if (nextData) {
+        for (let key in nextData) {
+          const prevValue = prevData[key];
+          const nextValue = nextData[key];
+          patchData(el, key, prevValue, nextValue);
+        }
+      } else {
+        //  没有VNodeData 说明旧的prevNodeData需要移除
+        if (prevData) {
+          for (let key in prevVNode) {
+            const prevValue = prevData[key];
+            patchData(el, key, prevValue, null);
+          }
+        }
+      } // 先看看子节点是傻子？
+
+
+      if (typeof prevVNode.children == 'string' && typeof nextVNode.children == 'string') {
+        // 子节点都是文本~！！
+        patchText(prevVNode, nextVNode);
+        return;
+      } // 调用patchChildren 函数递归地更新子节点
+
+
+      patchChildren(prevVNode.childFlags, // 旧的VNode 子节点的类型
+      nextVNode.childFlags, // 新的VNode子节点的类型
+      prevVNode.children, // 旧的VNode子接待你
+      nextVNode.children, el);
+    }
+
+    function patchData(el, key, prevValue, nextValue) {
+      switch (key) {
+        case 'style':
+          // 遍历新VNodeData中的style数据，将新的样式应用到元素
+          for (let k in nextValue) {
+            el.style[k] = nextValue[k];
+          } // 遍历旧prevValue中的style数据，将旧的样式中不存在于新样式的剔除
+
+
+          for (let k in prevValue) {
+            if (nextValue == undefined) {
+              el.style[k] = '';
+            } else {
+              if (prevValue && !nextValue.hasOwnProperty(k)) {
+                el.style[k] = '';
+              }
+            }
+          }
+
+          break;
+
+        case 'class':
+          el.className = nextValue;
+          break;
+
+        default:
+          if (key[0] === 'o' && key[1] == 'n') {
+            el.addEventListener(key.slice(2), nextValue);
+          } else if (domPropsRE.test(key)) {
+            /** Properties(DOM Prop) 和 Attributes
+             * 1. 标准属性，DOM prop 如 id <body id = 'page'></body>
+             * 可以通过 document.body.id来访问，也可以document.body[id] 直接设置
+             * 2. 非标属性，Attributes <body custom="val">
+             *  当尝试通过document.body.custom 访问不了
+            */
+            // 当作DOM Prop处理                                
+            el[key] = nextVNode;
+          } else {
+            // 当作Attr处理
+            el.setAttribute(key, nextValue);
+          }
+
+          break;
+      }
+    }
+    function patchChildren(prevChildFlags, nextChildFlags, prevChildren, nextChildren, container) {
+      console.log("prevChildFlags", prevChildFlags);
+      console.log("nextChildFlags", nextChildFlags);
+
+      switch (prevChildFlags) {
+        // 旧的children是单个子节点，会执行该case语句块
+        case ChildrenFlags.SINGLE_VNODE:
+          console.log('旧的children是单个子节点，会执行该case语句块');
+
+          switch (nextChildFlags) {
+            // 新的children也是单个子节点
+            case ChildrenFlags.SINGLE_VNODE:
+              // 此时prevChildren 和 nextChildren 都是VNode对象
+              patch(prevChildren, nextChildren, container);
+              break;
+            // 新的children没有子节点
+
+            case ChildrenFlags.NO_CHILDREN:
+              console.log(77777777);
+              container.removeChild(prevChildren.el);
+              break;
+            // 新的children有多个子节点                
+            // default:                
+            //     replaceVNode(prevChildren,nextChildren,container)
+            //     break             
+            // 新的children有多个子节点
+
+            default:
+              // 移除旧的单个字节点
+              console.log(888888);
+              container.removeChild(prevChildren.el); // 将新的多个子节点一一挂载到容器中
+
+              for (let i = 0; i < nextChildren.length; i++) {
+                mount(nextChildren[i], container);
+              }
+
+              break;
+          }
+
+          break;
+        // 旧的children没有子节点
+
+        case ChildrenFlags.NO_CHILDREN:
+          console.log('旧的children没有子节点');
+
+          switch (nextChildFlags) {
+            // 新的children 有一个子节点
+            case ChildrenFlags.SINGLE_VNODE:
+              mount(nextChildren, container);
+              break;
+            // 新的children也没有子节点，新旧都没有，啥也不用做    
+
+            case ChildrenFlags.NO_CHILDREN:
+              break;
+
+            default:
+              for (let i = 0; i < nextChildren.length; i++) {
+                mount(nextChildren[i], container);
+              }
+
+              break;
+          }
+
+          break;
+        // 旧的children是多个子节点
+
+        default:
+          console.log('旧的children是多个子节点0');
+
+          switch (nextChildFlags) {
+            // 新的是单个子节点
+            case ChildrenFlags.SINGLE_VNODE:
+              for (let i = 0; i < prevChildren.length; container) {
+                container.removeChild(prevChildren[i].el);
+              }
+
+              mount(nextChildren, container);
+
+            case ChildrenFlags.NO_CHILDREN:
+              for (let i = 0; i < prevChildren.length; container) {
+                container.removeChild(prevChildren[i].el);
+              }
+
+              break;
+
+            default:
+              // 新的children是多个子节点，使用diff算法
+              // waiting to do         
+              // compareDoubleEnd(prevChildren,nextChildren,container)
+              infernoDiff(prevChildren, nextChildren, container);
+              break;
+          }
+
+          break;
+      }
     }
 
     function initRender(vm) {
@@ -618,6 +1045,7 @@
         const prevVNode = vm._vnode;
         const parent = vm.$parent;
         let parentElm = null;
+        console.log("————————————————————————————————————要重新更新吗？", prevVNode);
 
         if (prevVNode == null) {
           // 没有旧的VNode， 使用"mounnt"函数挂在全新的VNode
@@ -631,18 +1059,23 @@
           }
 
           if (vnode) {
-            mount(vnode, container);
-            container.vnode = vnode;
+            mount$1(vnode, container);
+            vm._vnode = vnode;
+            vm.$el = vnode.el; // container.vnode = vnode
           }
         } else {
           if (vnode) {
             //有旧的VNode, 则调用'patch'函数打补丁
-            patch(prevVNode, vnode, container);
-            container.vnode = vnode;
+            console.log("打补吗？？？？？？？？！！！！！！！！！！！！！！", patch);
+            patch(prevVNode, vnode, container); // container.vnode = vnode
+
+            vm._vnode = vnode;
+            vm.$el = vnode.el;
           } else {
             // 有旧的vnode，但是没有新的vnode，直接移除旧的
-            container.removeChild(prevVNode.el);
-            container.vnode = null;
+            container.removeChild(prevVNode.el); // container.vnode = null
+
+            vm._vnode = null;
           }
         }
       };
@@ -666,11 +1099,11 @@
 
       installRenderHelpers(XVue.prototype);
     }
-    function mount(vnode, container, refVNode) {
+    function mount$1(vnode, container, refVNode) {
       const flags = vnode.flags;
 
       if (flags & VNodeFlags.ELEMENT) {
-        // 挂载普通标签
+        // 挂载普通标签        
         mountElement(vnode, container, refVNode);
       } else if (flags & VNodeFlags.COMPONENT) ; else if (flags & VNodeFlags.FRAGMENT) ; else if (flags & VNodeFlags.TEXT) {
         // 挂载纯文本
@@ -712,6 +1145,7 @@
 
           this.observeArray(value);
         } else {
+          console.log("_&&&&&_________________", value);
           this.walk(value);
         }
       }
@@ -770,6 +1204,7 @@
         get: function reactiveGetter() {
           // const value = getter? getter.call(obj): val
           if (Dep.target) {
+            console.log("____get ???????????", value);
             dep.depend();
 
             if (childOb) {
@@ -795,15 +1230,16 @@
           }
 
           value = newVal;
+          console.log("__11111111__________set ???????????", newVal);
           childOb = observe(newVal);
           dep.notify();
         }
       });
     }
     /**
-     * Collect dependencies on array elements when the array
-     *  is touched, since we cannpt intercept array element access
-     * lick proerty getters.
+    * Collect dependencies on array elements when the array
+    *  is touched, since we cannpt intercept array element access
+    * lick proerty getters.
     */
 
     function dependArray(value) {
@@ -1176,92 +1612,312 @@
       transformNode
     };
 
-    // import { getBindingAttr } from "../../Compiler/helpers"
+    const validDivisionCharRE = /[\w).+\-_$\]]/;
+    /**
+     * \w 匹配非特殊字符，即a-z, A-Z, 0-9, _, 汉字
+     * \W 匹配特殊字符, 即非\w的其余的所有特殊字符 
+     * 
+     * validDivisionCharRE用来匹配一个字符
+     */
 
-    function preTransformNode(el, options) {
-      //处理的是 绑定v-model的input标签的type属性
-      if (el.tag === 'input') {
-        const map = el.attrsMap;
+    function parseFilters(exp) {
+      let inSingle = false;
+      let inDouble = false;
+      let inTemplateString = false;
+      let inRegex = false;
+      let curly = 0;
+      let square = 0;
+      let paren = 0;
+      let lastFilterIndex = 0;
+      let c, prev, i, expression, filters;
 
-        if (!map['v-model']) {
-          return;
-        }
+      for (i = 0; i < exp.length; i++) {
+        prev = c; // charCodeAt()返回指定位置的字符的ASCII码
 
-        let typeBinding;
+        c = exp.charCodeAt(i);
 
-        if (map[':type'] || map['v-bind:type']) {
-          typeBinding = helpers.getBindingAttr(el, 'type');
-        }
+        if (inSingle) {
+          if (c === 0x27 && prev !== 0x5C) inSingle = false;
+        } else if (inDouble) {
+          if (c === 0x22 && prev !== 0x5C) inDouble = false;
+        } else if (inTemplateString) {
+          if (c === 0x60 && prev !== 0x5C) inTemplateString = false;
+        } else if (inRegex) {
+          //当前读取的字符存在于正则表达式内，已确定为正则环境
+          if (c === 0x2f && prev !== 0x5C) inRegex = false;
+        } else if (c === 0x7C && //pipe |
+        exp.charCodeAt(i + 1) !== 0x7C && exp.charCodeAt(i - 1) !== 0x7C && !curly && !square && !paren) {
+          if (expression === undefined) {
+            // i是当前遇到的管道符|的位置索引，
+            lastFilterIndex = i + 1;
+            expression = exp.slice(0, i).trim();
+          } else {
+            pushFilter();
+          }
+        } else {
+          switch (c) {
+            case 0x22:
+              inDouble = true;
+              break;
+            // " 
 
-        if (!map.type && !typeBinding && map['v-bind']) {
-          // <input v-model="val" v-bind="{type: inputType}">
-          typeBinding = `(${map['v-bind']}).type`;
-        }
+            case 0x27:
+              inSingle = true;
+              break;
+            // ' 单引
 
-        if (typeBinding) {
-          helpers.getAndRemoveAttr(el, 'v-if', true);
-          const ifConditionExtra = ifCondition ? `&&(${ifCondition})` : ``;
-          const hasElse = helpers.getAndRemoveAttr(el, 'v-else', true) != null;
-          const elseIfCondition = helpers.getAndRemoveAttr(el, 'v-else-if', true);
-          /* preTransformNode函数的作用是将一个拥有绑定类型(type)的v-model指令的input标签
-          *  扩展为三个input标签，这三个input标签分别是复选按钮(checkbox)、单选按钮(radio)和其他input标签
-          **/
-          // 1. checkbox
+            case 0x60:
+              inTemplateString = true;
+              break;
+            // ` 模板字符串的单引  `${{msg}}`
 
-          const branch0 = cloneASTElement(el); // process for on the main node
+            case 0x28:
+              paren++;
+              break;
+            // ( 开括号
 
-          index$1.processFor(branch0);
-          helpers.addRawAttr(branch0, 'type', 'checkbox');
-          index$1.processElement(branch0, 'type', 'checkbox');
-          branch0.processed = true;
-          /* <input v-model='val' :type="inputType" v-if="display" />
-          * el.if属性为 '(${inputType}) === 'checkbox'&&display'  inputType为checkbox且本地状态display为真才会渲染该复选按钮*/
+            case 0x29:
+              paren--;
+              break;
+            // ) 闭括号
 
-          branch0.if = `(${typeBinding}) === 'checkbox'` + ifConditionExtra;
-          index$1.addIfCondition(branch0, {
-            exp: branch0.if,
-            block: branch0
-          }); // 2. add radio else-if condition            
+            case 0x5B:
+              square++;
+              break;
+            // [ 开方括号
 
-          const branch1 = cloneASTElement(el);
-          /* 单纯的将克隆出来的元素描述对象中的v-for属性移除掉,因为在复选按钮中已经使用processFor处理过了v-for指令
-           * 由于它们本是互斥的,其本质上等价于是同一个元素，只是根据不同的条件渲染不同的标签罢了，所以v-for指令处理一次就够了*/
+            case 0x5D:
+              square--;
+              break;
+            // ]
 
-          helpers.getAndRemoveAttr(branch1, 'v-for', true);
-          helpers.addRawAttr(branch1, 'type', 'radio');
-          index$1.processElement(branch1, options);
-          index$1.addIfCondition(branch0, {
-            exp: `(${typeBinding} === 'radio')` + ifConditionExtra,
-            block: branch1
-          }); // 3. other
+            case 0x7B:
+              curly++;
+              break;
+            // {
 
-          const branch2 = cloneASTElement(el);
-          helpers.getAndRemoveAttr(branch2, 'v-for', true);
-          helpers.addRawAttr(branch2, ':type', typeBinding);
-          index$1.processElement(branch2, options);
-          index$1.addIfCondition(branch0, {
-            exp: ifCondition,
-            block: branch2
-          });
-
-          if (hasElse) {
-            branch0.else = true;
-          } else if (elseIfCondition) {
-            branch0.elseif = elseIfCondition;
+            case 0x7D:
+              curly--;
+              break;
+            // }
           }
 
-          return branch0;
+          if (c === 0x2f) {
+            // / 进入正则环境的代码
+            let j = i - 1;
+            let p;
+
+            for (; j >= 0; j--) {
+              //charAt()返回指定位置的字符串
+              p = exp.charAt(j);
+              if (p !== ' ') break; //如果找到了 /字符之前不为空的字符 则break结束for循环
+            }
+            /**
+             * p不存在，或者字符串不满足正则validDivisionCharRE的情况下
+             * （/前面的字符不能是validDivisionCharRE所匹配的任何一个字符，否则/不会被认为是正则的开始）
+             * 认为 / 是正则的开始
+            */
+
+
+            if (!p || !validDivisionCharRE.test(p)) {
+              inRegex = true;
+            }
+          }
         }
+      }
+
+      if (expression === undefined) {
+        expression = exp.slice(0, i).trim();
+      } else if (lastFilterIndex !== 0) {
+        pushFilter();
+      }
+
+      function pushFilter() {
+        //lastFilterIndex = i+1 是管道符|的后一个字符的位置
+        (filters || (filters = [])).push(exp.slice(lastFilterIndex, i).trim());
+        lastFilterIndex = i + 1;
+      }
+
+      if (filters) {
+        for (i = 0; i < filters.length; i++) {
+          expression = wrapFilter(expression, filters);
+        }
+      }
+
+      return expression;
+    }
+
+    function wrapFilter(exp, filter) {
+      const i = filter.indexOf('(');
+
+      if (i < 0) {
+        return `_f("${filter}")(${exp})`;
+      } else {
+        const name = filter.slice(0, i);
+        const args = filter.slice(i + 1);
+        return `_f("${name}")(${exp}${args !== ')' ? ',' + args : args})`;
       }
     }
 
-    function cloneASTElement(el) {
-      return index$1.createASTElement(el.tag, el.attrsList.slice(), el.parent);
+    function addHandler(el, name, value, modifiers, important, warn, range, dynamic) {
+      modifiers = modifiers || emptyObject;
+      modifiers = modifiers || emptyObject;
+
+      if (modifiers.capture) {
+        delete modifiers.capture;
+        name = '!' + name;
+      }
+
+      if (modifiers.once) {
+        delete modifiers.once;
+        name = '~' + name;
+      }
+
+      if (modifiers.passive) {
+        delete modifiers.passive;
+        name = '&' + name;
+      }
+
+      if (name === 'click') {
+        if (modifiers.right) {
+          // right修饰符标识右击
+          name = 'contextmenu'; // 右击会触发contextmenu事件 弹出一个菜单
+
+          delete modifiers.right;
+        } else if (modifiers.middle) {
+          // middle 滚轮事件
+          name = 'mouseup';
+        }
+      }
+
+      let events;
+
+      if (modifiers.native) {
+        delete modifiers.native;
+        events = el.nativeEvents || (el.nativeEvents = {});
+      } else {
+        events = el.events || (el.events = {});
+      }
+
+      const newHandler = {
+        value
+      };
+
+      if (modifiers !== emptyObject) {
+        newHandler.modifiers = modifiers;
+      }
+
+      const handlers = events[name];
+
+      if (Array.isArray(handlers)) ; else if (handlers) ; else {
+        events[name] = newHandler;
+      }
+    }
+    function pluckModuleFunction(modules, key) {
+      return modules ? modules.map(m => m[key]).filter(_ => _) : [];
+    }
+    function baseWarn$1(msg, rang) {
+      console.error(`[Vue compiler]: ${msg}`);
+    }
+    function addDirective(el, name, rawName, value, arg, modifiers) {
+      console.log("el.directives.........指令---", el);
+      (el.directives || (el.directives = [])).push({
+        name,
+        rawName,
+        value,
+        arg,
+        modifiers
+      });
+      el.plain = false;
+    }
+    function addProp(el, name, value, range, dynamic) {
+      (el.props || (el.props = [])).push({
+        name,
+        value,
+        dynamic
+      });
+      el.plain = false;
     }
 
-    var model$1 = {
-      preTransformNode
-    };
+    function model$1(el, dir, _warn) {
+      const value = dir.value;
+      const tag = el.tag;
+      const type = el.attrsMap.type;
+
+      if (el.component) {
+        genComponentModel(el, value);
+      } else if (tag === 'select') ; else if (tag === 'input' && type === 'checkbox') ; else if (tag === 'input' && type == 'radio') ; else if (tag === 'input' || tag === 'textarea') {
+        genDefaultModel$1(el, value);
+      } else if (!isHTMLTag(tag)) {
+        return false;
+      } else {
+        warn(`<${el.tag} m-model="${value}">: ` + `m-model is not supported on this element type. `);
+      }
+
+      return true;
+    }
+    /**
+     * 对input输入框 textarea处理
+     */
+
+    function genDefaultModel$1(el, value) {
+      const type = el.attrsMap.type;
+      {
+        const value = el.attrsMap['v-bind:value'] || el.attrsMap[':value'];
+
+        if (value) {
+          const binding = el.attrsMap['v-bind:value'] ? 'v-bind:value' : ':value';
+          warn(`${binding}="${value}" conflicts with v-model on the same element `);
+        }
+      }
+      const needComposiion = type !== 'range';
+      const event = type === 'range' ? '__r' : 'input';
+      let valueExpression = `$event.target.value`;
+      let code = genAssignmentCode$1(value, valueExpression);
+      console.log("+=====!!!!!!!!!!!!!!!!!!!!!!!!!==", code);
+
+      if (needComposiion) {
+        code = `if($event.target.composingTT)return;${code}`;
+      }
+
+      addProp(el, 'value', `(${value})`);
+      addHandler(el, event, code, null);
+    }
+
+    function genAssignmentCode$1(value, assignment) {
+      const res = parseModel$1(value);
+
+      if (res.key === null) {
+        return `${value} =${assignment};`;
+      } else {
+        return `$set(${res.exp},${res.key},${assignment})`;
+      }
+    } // 处理m-model="obj.val"
+    // 暂不处理带[]的
+
+
+    function parseModel$1(val) {
+      val = val.trim();
+      let len = val.length; // 1. m-model = "name"
+      // 2. m-model = "obj[name].age"
+      // 3. m-model = "obj.name.age"
+
+      if (val.indexOf('[') < 0 || val.lastIndexOf(']') < len - 1) {
+        let index = val.lastIndexOf('.');
+
+        if (index > -1) {
+          return {
+            exp: val.slice(0, index),
+            key: JSON.stringify(val.slice(index + 1))
+          };
+        } else {
+          return {
+            exp: val,
+            key: null
+          };
+        }
+      }
+    }
 
     var modules = [klass, style, model$1]; // export default{
     //       klass,
@@ -1524,153 +2180,6 @@
       }
     }
 
-    const validDivisionCharRE = /[\w).+\-_$\]]/;
-    /**
-     * \w 匹配非特殊字符，即a-z, A-Z, 0-9, _, 汉字
-     * \W 匹配特殊字符, 即非\w的其余的所有特殊字符 
-     * 
-     * validDivisionCharRE用来匹配一个字符
-     */
-
-    function parseFilters(exp) {
-      let inSingle = false;
-      let inDouble = false;
-      let inTemplateString = false;
-      let inRegex = false;
-      let curly = 0;
-      let square = 0;
-      let paren = 0;
-      let lastFilterIndex = 0;
-      let c, prev, i, expression, filters;
-
-      for (i = 0; i < exp.length; i++) {
-        prev = c; // charCodeAt()返回指定位置的字符的ASCII码
-
-        c = exp.charCodeAt(i);
-
-        if (inSingle) {
-          if (c === 0x27 && prev !== 0x5C) inSingle = false;
-        } else if (inDouble) {
-          if (c === 0x22 && prev !== 0x5C) inDouble = false;
-        } else if (inTemplateString) {
-          if (c === 0x60 && prev !== 0x5C) inTemplateString = false;
-        } else if (inRegex) {
-          //当前读取的字符存在于正则表达式内，已确定为正则环境
-          if (c === 0x2f && prev !== 0x5C) inRegex = false;
-        } else if (c === 0x7C && //pipe |
-        exp.charCodeAt(i + 1) !== 0x7C && exp.charCodeAt(i - 1) !== 0x7C && !curly && !square && !paren) {
-          if (expression === undefined) {
-            // i是当前遇到的管道符|的位置索引，
-            lastFilterIndex = i + 1;
-            expression = exp.slice(0, i).trim();
-          } else {
-            pushFilter();
-          }
-        } else {
-          switch (c) {
-            case 0x22:
-              inDouble = true;
-              break;
-            // " 
-
-            case 0x27:
-              inSingle = true;
-              break;
-            // ' 单引
-
-            case 0x60:
-              inTemplateString = true;
-              break;
-            // ` 模板字符串的单引  `${{msg}}`
-
-            case 0x28:
-              paren++;
-              break;
-            // ( 开括号
-
-            case 0x29:
-              paren--;
-              break;
-            // ) 闭括号
-
-            case 0x5B:
-              square++;
-              break;
-            // [ 开方括号
-
-            case 0x5D:
-              square--;
-              break;
-            // ]
-
-            case 0x7B:
-              curly++;
-              break;
-            // {
-
-            case 0x7D:
-              curly--;
-              break;
-            // }
-          }
-
-          if (c === 0x2f) {
-            // / 进入正则环境的代码
-            let j = i - 1;
-            let p;
-
-            for (; j >= 0; j--) {
-              //charAt()返回指定位置的字符串
-              p = exp.charAt(j);
-              if (p !== ' ') break; //如果找到了 /字符之前不为空的字符 则break结束for循环
-            }
-            /**
-             * p不存在，或者字符串不满足正则validDivisionCharRE的情况下
-             * （/前面的字符不能是validDivisionCharRE所匹配的任何一个字符，否则/不会被认为是正则的开始）
-             * 认为 / 是正则的开始
-            */
-
-
-            if (!p || !validDivisionCharRE.test(p)) {
-              inRegex = true;
-            }
-          }
-        }
-      }
-
-      if (expression === undefined) {
-        expression = exp.slice(0, i).trim();
-      } else if (lastFilterIndex !== 0) {
-        pushFilter();
-      }
-
-      function pushFilter() {
-        //lastFilterIndex = i+1 是管道符|的后一个字符的位置
-        (filters || (filters = [])).push(exp.slice(lastFilterIndex, i).trim());
-        lastFilterIndex = i + 1;
-      }
-
-      if (filters) {
-        for (i = 0; i < filters.length; i++) {
-          expression = wrapFilter(expression, filters);
-        }
-      }
-
-      return expression;
-    }
-
-    function wrapFilter(exp, filter) {
-      const i = filter.indexOf('(');
-
-      if (i < 0) {
-        return `_f("${filter}")(${exp})`;
-      } else {
-        const name = filter.slice(0, i);
-        const args = filter.slice(i + 1);
-        return `_f("${name}")(${exp}${args !== ')' ? ',' + args : args})`;
-      }
-    }
-
     const defaultTagRE = /\{\{((?:.|\n)+?)\}\}/g;
     const buildRegex = cached(delimiters => {
       delimiters[0].replace(regexEscapeRE, '\\$&');
@@ -1726,86 +2235,6 @@
         expression: tokens.join('+'),
         tokens: rawTokens
       };
-    }
-
-    function addHandler(el, name, value, modifiers, important, warn, range, dynamic) {
-      modifiers = modifiers || emptyObject;
-      modifiers = modifiers || emptyObject;
-
-      if (modifiers.capture) {
-        delete modifiers.capture;
-        name = '!' + name;
-      }
-
-      if (modifiers.once) {
-        delete modifiers.once;
-        name = '~' + name;
-      }
-
-      if (modifiers.passive) {
-        delete modifiers.passive;
-        name = '&' + name;
-      }
-
-      if (name === 'click') {
-        if (modifiers.right) {
-          // right修饰符标识右击
-          name = 'contextmenu'; // 右击会触发contextmenu事件 弹出一个菜单
-
-          delete modifiers.right;
-        } else if (modifiers.middle) {
-          // middle 滚轮事件
-          name = 'mouseup';
-        }
-      }
-
-      let events;
-
-      if (modifiers.native) {
-        delete modifiers.native;
-        events = el.nativeEvents || (el.nativeEvents = {});
-      } else {
-        events = el.events || (el.events = {});
-      }
-
-      const newHandler = {
-        value
-      };
-
-      if (modifiers !== emptyObject) {
-        newHandler.modifiers = modifiers;
-      }
-
-      const handlers = events[name];
-
-      if (Array.isArray(handlers)) ; else if (handlers) ; else {
-        events[name] = newHandler;
-      }
-    }
-    function pluckModuleFunction(modules, key) {
-      return modules ? modules.map(m => m[key]).filter(_ => _) : [];
-    }
-    function baseWarn$1(msg, rang) {
-      console.error(`[Vue compiler]: ${msg}`);
-    }
-    function addDirective(el, name, rawName, value, arg, modifiers) {
-      console.log("el.directives.........指令---", el);
-      (el.directives || (el.directives = [])).push({
-        name,
-        rawName,
-        value,
-        arg,
-        modifiers
-      });
-      el.plain = false;
-    }
-    function addProp(el, name, value, range, dynamic) {
-      (el.props || (el.props = [])).push({
-        name,
-        value,
-        dynamic
-      });
-      el.plain = false;
     }
 
     const dirRE = /^v-|^@|^:/; // const modifierRE = /\.[^.]+/g
@@ -1981,8 +2410,6 @@
             // processFor(element)
             processElement(element);
           }
-
-          console.log("================", element);
 
           if (!root) {
             root = element;
@@ -2178,6 +2605,47 @@
 
     };
 
+    // export function genHandlers(events,isNative){
+    //     const prefix = isNative ? 'nativeOn:' : 'on:'
+    //     let staticHandlers = ``
+    //     let dynamicHandlers = ``
+    //     for(const name in events){
+    //         const handlerCode = genHandler(events[name])
+    //         if(events[name] && events[name].dynamic){
+    //             dynamicHandlers += `${name},${handlerCode},`
+    //         }else{
+    //             staticHandlers += `"${name}":${handlerCode},`
+    //         }
+    //     }
+    //     return res.slice(0, -1) + '}'
+    // }
+    // /**
+    //  * el.events = { input:{ value: "name = $event.target.value"} }
+    //  * 
+    // */
+    // function genHandler(handler){
+    //     if(!handler){
+    //         return 'function(){}'
+    //     }
+    //     if(Array.isArray(handler)){
+    //         return `[${handler.map(handler => genHandler(handler)).join(',')}]`
+    //     }
+    // }
+    function genHandlers(events) {
+      console.log("啥也不是=====!=====", events);
+      console.log(">>>>>>>>>>>>>");
+      var res = 'on:{';
+
+      for (var name in events) {
+        console.log("undefiend 还能执行？", events);
+        res += "\'" + name + "\':" + ("function($event){  console.log('@@@@@@@@@数据变更@@@@@@@@',$event); " + events[name].value + ";}") + '.';
+      }
+
+      console.log("_________res______________", res);
+      console.log("_____________________");
+      return res.slice(0, -1) + '}';
+    }
+
     class CodegenState {
       constructor(options) {
         this.options = options;
@@ -2201,9 +2669,9 @@
 
         if (gen) {
           needRuntime = !!gen(el, dir, state.warn);
-        }
+        } // console.log("=======成语借楼======",);
+        // v-model, v-show
 
-        console.log("=======成语借楼======"); // v-model, v-show
 
         if (needRuntime) {
           hasRuntime = true;
@@ -2222,6 +2690,7 @@
       console.log("代码生成器==", ast);
       const state = new CodegenState(options);
       const code = ast ? genElement(ast, state) : '_c("div")';
+      console.log("+++++++++++++++++++++", code);
       return {
         render: createFunction(`with(this){return ${code}}`),
         staticRenderFns: state.staticRenderFns
@@ -2259,7 +2728,6 @@
 
             let children = genChildren(el, state);
             code = `_c('${el.tag}'${data ? `,${data}` : ''}${children ? `,${children}` : ''})`;
-            console.log("喵喵code", code);
             return code;
           }
       }
@@ -2292,12 +2760,15 @@
 
       if (el.key) {
         data += `key:${el.key},`;
-      }
+      } // console.log("我欲癫狂---",el.props);
 
-      console.log("我欲癫狂---", el.props);
 
       if (el.props) {
-        data += `domProps:{${genProps(el.props)}}`;
+        data += `domProps:{${genProps(el.props)}},`;
+      }
+
+      if (el.events) {
+        data += `${genHandlers(el.events)},`;
       }
 
       if (el.ref) {
@@ -2307,8 +2778,8 @@
       // }
 
 
-      data = data.replace(/,$/, '') + '}';
-      console.log("=========我疑惑了=============", data);
+      data = data.replace(/,$/, '') + '}'; // console.log("=========我疑惑了=============",data);
+
       return data;
     }
 
@@ -2398,11 +2869,11 @@
       initEvents(vm);
       initRender(vm); // 调用生命周期的钩子函数    
 
-      callHook$1(vm, 'beforeCreate'); //initInjections(vm) // resolve injections before data/props
+      callHook(vm, 'beforeCreate'); //initInjections(vm) // resolve injections before data/props
 
       initState(vm); // initProvide(vm) // resolve provide after data/props
 
-      callHook$1(vm, 'created'); //   
+      callHook(vm, 'created'); //   
 
       if (vm.$options.el) {
         vm.$mount(vm, vm.$options.el);
