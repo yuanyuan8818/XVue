@@ -404,7 +404,6 @@
       }
 
       let childFlags = null;
-      console.log("^^^^^^^^^^^^^^^^^^^^: children", children);
 
       if (Array.isArray(children)) {
         let {
@@ -434,7 +433,6 @@
         children = createTextVNode(children + '');
       }
 
-      console.log("dddddddddd");
       let vnode = {
         _isVNode: true,
         flags,
@@ -534,7 +532,6 @@
       };
     }
     function toString(val) {
-      console.log("看看这里的数据版》》 找找val", val);
       return val == null ? '' : typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val);
     }
 
@@ -551,7 +548,6 @@
       vnode.el = el; // 将vnodeData应用到元素上        
 
       const data = vnode.data.attrs || vnode.data;
-      console.log("====^^^^^^^^^^^^^^==========^^^^^^^^^^^^^======", vnode.data);
 
       if (data) {
         for (let key in data) {
@@ -567,38 +563,26 @@
 
             default:
               if (key[0] === 'o' && key[1] == 'n') {
-                el.addEventListener(key.slice(2), data[key]);
-
+                // el.addEventListener(key.slice(2),data[key])
                 if (key === 'on') {
                   let events = data[key];
 
                   for (let name in events) {
-                    console.log("难道你没有改变吗？？？？？？？？？？？？？？", el);
                     el.addEventListener(name, events[name]);
                   }
                 }
-              } else if (domPropsRE$1.test(key)) {
-                /** Properties(DOM Prop) 和 Attributes
-                 * 1. 标准属性，DOM prop 如 id <body id = 'page'></body>
-                 * 可以通过 document.body.id来访问，也可以document.body[id] 直接设置
-                 * 2. 非标属性，Attributes <body custom="val">
-                 *  当尝试通过document.body.custom 访问不了
-                */
-                // 当作DOM Prop处理
-                console.log("DOM Prop:::::::::::::::::", key);
-                el[key] = nextVNode;
-              } else {
-                // 当作Attr处理
+              } else if (domPropsRE$1.test(key)) ; else {
+                // domProps里的数据当作DOM Prop处理
                 if (key === 'domProps') {
                   let item = data[key];
-                  console.log(" 瞧一瞧", item);
 
                   for (let it in item) {
                     el[it] = item[it];
                   }
+                } else {
+                  // Attributes非标属性
+                  el.setAttribute(key, data[key]);
                 }
-
-                console.log("    Attr ::::::::::: ", key); // el.setAttribute(key,data[key])                
               }
 
               break;
@@ -621,7 +605,6 @@
         }
       }
 
-      console.log("=====你在这里调用了？？？？？=====", container);
       refVNode ? container.insertBefore(el, refVNode) : container.appendChild(el);
     }
 
@@ -795,12 +778,8 @@
 
     const domPropsRE = /\[A-Z]|^(?:value|checked|selected|muted)$/;
     function patch(prevVNode, nextVNode, container) {
-      console.log("MMMMMMMMMMMMMMMMMMMMMMMMM", container);
-      console.log("你到底更新不？？");
       const nextFlags = nextVNode.flags;
-      const prevFlags = prevVNode.flags;
-      console.log("哪里走》》", prevFlags);
-      console.log("哪里走》》", nextFlags); // 新旧节点是同一种类型才进行比较，不是同一种类型直接替换
+      const prevFlags = prevVNode.flags; // 新旧节点是同一种类型才进行比较，不是同一种类型直接替换
 
       if (prevFlags !== nextFlags) {
         console.log(1111111);
@@ -860,9 +839,8 @@
       const nextData = nextVNode.data; // if(prevData == null && nextData == null  ){
       //     console.log("气死");
       //     return
-      // }
-
-      console.log("秒~~~啊~~~~·", nextData); // 新的VNodeData存在时才有必要更新
+      // }    
+      // 新的VNodeData存在时才有必要更新
 
       if (nextData) {
         for (let key in nextData) {
@@ -946,8 +924,6 @@
       switch (prevChildFlags) {
         // 旧的children是单个子节点，会执行该case语句块
         case ChildrenFlags.SINGLE_VNODE:
-          console.log('旧的children是单个子节点，会执行该case语句块');
-
           switch (nextChildFlags) {
             // 新的children也是单个子节点
             case ChildrenFlags.SINGLE_VNODE:
@@ -1006,8 +982,6 @@
         // 旧的children是多个子节点
 
         default:
-          console.log('旧的children是多个子节点0');
-
           switch (nextChildFlags) {
             // 新的是单个子节点
             case ChildrenFlags.SINGLE_VNODE:
@@ -1048,7 +1022,6 @@
         const prevVNode = vm._vnode;
         const parent = vm.$parent;
         let parentElm = null;
-        console.log("————————————————————————————————————要重新更新吗？", prevVNode);
 
         if (prevVNode == null) {
           // 没有旧的VNode， 使用"mounnt"函数挂在全新的VNode
@@ -1206,14 +1179,12 @@
         get: function reactiveGetter() {
           // const value = getter? getter.call(obj): val
           if (Dep.target) {
-            console.log("____get ???????????", value);
             dep.depend();
 
             if (childOb) {
               /**
-               * 假设 childOb = observe(a)
-               * childOb = a.__ob__
-               * 则以下 a.__ob__.dep.depend                     
+               * childOb = observe(a)
+               * childOb = a.__ob__                               
               */
               childOb.dep.depend(); // 数组的索引不是响应式的，需要为子元素手动收集依赖
 
@@ -1338,7 +1309,6 @@
 
           finalOptions.warn = warn;
           const compiled = baseCompile(template.trim(), finalOptions);
-          console.log("嘻嘻哈哈-----", compiled);
           return compiled;
         }
 
@@ -1821,7 +1791,6 @@
       console.error(`[Vue compiler]: ${msg}`);
     }
     function addDirective(el, name, rawName, value, arg, modifiers) {
-      console.log("el.directives.........指令---", el);
       (el.directives || (el.directives = [])).push({
         name,
         rawName,
@@ -1844,6 +1813,7 @@
       const value = dir.value;
       const tag = el.tag;
       const type = el.attrsMap.type;
+      console.log("会进来这里的==？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？=");
 
       if (el.component) {
         genComponentModel(el, value);
@@ -1881,7 +1851,8 @@
         code = `if($event.target.composingTT)return;${code}`;
       }
 
-      addProp(el, 'value', `(${value})`);
+      console.log("?can not read value!!!!", value); // addProp(el, 'value', value);
+
       addHandler(el, event, code, null);
     }
 
@@ -2291,7 +2262,8 @@
               name = name.slice(0, -(arg.length + 1));
             }
 
-            addDirective(el, name, rawName, value, arg, modifiers); // if(name === 'model'){
+            addDirective(el, name, rawName, value, arg, modifiers); // add                
+            // if(name === 'model'){
             //     checkForAliasModel(el, value)
             // }                
           }
@@ -2347,14 +2319,14 @@
       }
     }
 
-    let warn$1, preTransforms; // parse在词法分析的基础上做句法分析
+    let warn$1; // parse在词法分析的基础上做句法分析
 
     function parse(template, options) {
       let root = null;
       let stack = [];
       let currentParent;
       warn$1 = options.warn || baseWarn$1;
-      preTransforms = pluckModuleFunction(options.modules, 'preTransformNode');
+      pluckModuleFunction(options.modules, 'preTransformNode');
       pluckModuleFunction(options.modules, 'transformNode');
 
       function closeElement(element) {
@@ -2399,10 +2371,9 @@
 
         start(tag, attrs, unary, start, end) {
           let element = createASTElement(tag, attrs, parent); // apply pre-transforms
-
-          for (let i = 0; i < preTransforms.length; i++) {
-            element = preTransforms[i](element, options) || element;
-          }
+          // for (let i = 0; i < preTransforms.length; i++) {                
+          //     element = preTransforms[i](element, options) || element
+          // }
 
           if (!element.processed) {
             // 如果存在v-if等，则给element添加if  elseif等属性
@@ -2490,6 +2461,7 @@
         }
 
       });
+      console.log("zhaodao -------------", root);
       return root;
     }
     function addIfCondition(el, condition) {
@@ -2560,7 +2532,7 @@
         code = `if($event.target.composing)return;${code}`;
       }
 
-      addProp(el, 'value', `(${value})`);
+      addProp(el, 'value', `${value}`);
       addHandler(el, event, code, null);
     }
 
@@ -2633,17 +2605,14 @@
     //     }
     // }
     function genHandlers(events) {
-      console.log("啥也不是=====!=====", events);
-      console.log(">>>>>>>>>>>>>");
+      console.log("=====genHandlers=====", events);
       var res = 'on:{';
 
       for (var name in events) {
-        console.log("undefiend 还能执行？", events);
-        res += "\'" + name + "\':" + ("function($event){  console.log('@@@@@@@@@数据变更@@@@@@@@',$event); " + events[name].value + ";}") + '.';
+        res += "\'" + name + "\':" + ("function($event){  console.log(' input数据变更 ',$event); " + `${events[name].value}` + ";}") + '.';
       }
 
       console.log("_________res______________", res);
-      console.log("_____________________");
       return res.slice(0, -1) + '}';
     }
 
@@ -2670,14 +2639,13 @@
 
         if (gen) {
           needRuntime = !!gen(el, dir, state.warn);
-        } // console.log("=======成语借楼======",);
-        // v-model, v-show
+        } // v-model, v-show
 
 
         if (needRuntime) {
           hasRuntime = true;
-          res += `{name:${JSON.stringify(dir.name)}, rawName:${JSON.stringify(dir.rawName)}` + `${dir.value ? `,value:(${dir.value}),expression:${JSON.stringify(dir.value)}` : ''}` + `},`;
-          console.log("====111111111111=======", res);
+          res += `{name:${JSON.stringify(dir.name)}, rawName:${JSON.stringify(dir.rawName)}` + `${dir.value ? `,value:${dir.value},expression:${JSON.stringify(dir.value)}` : ''}` + `},`;
+          console.log("==genDirectives=======", res);
         }
       }
 
@@ -2688,7 +2656,6 @@
 
 
     function generate(ast, options) {
-      console.log("代码生成器==", ast);
       const state = new CodegenState(options);
       const code = ast ? genElement(ast, state) : '_c("div")';
       console.log("+++++++++++++++++++++", code);
@@ -2754,6 +2721,7 @@
     function genData(el, state) {
       let data = '{';
       const dirs = genDirectives(el, state);
+      console.log("====dirs", dirs);
 
       if (dirs) {
         data += dirs + ',';
@@ -2761,11 +2729,10 @@
 
       if (el.key) {
         data += `key:${el.key},`;
-      } // console.log("我欲癫狂---",el.props);
-
+      }
 
       if (el.props) {
-        data += `domProps:{${genProps(el.props)}},`;
+        data += `domProps:{${genProps(el)}},`;
       }
 
       if (el.events) {
@@ -2779,17 +2746,17 @@
       // }
 
 
-      data = data.replace(/,$/, '') + '}'; // console.log("=========我疑惑了=============",data);
-
+      data = data.replace(/,$/, '') + '}';
       return data;
     }
 
-    function genProps(props) {
+    function genProps(el) {
+      const props = el.props;
       let res = '';
 
       for (let i = 0, l = props.length; i < l; i++) {
         const prop = props[i];
-        res += `'${prop.name}' : '${prop.value}',`;
+        res += `'${prop.name}' : ${prop.value},`;
       }
 
       return res.slice(0, -1);

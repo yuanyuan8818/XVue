@@ -113,8 +113,7 @@ export function baseWarn(msg,rang){
     console.error(`[Vue compiler]: ${msg}`)
 }
 
-export function addDirective(el,name,rawName,value,arg,modifiers){
-    console.log("el.directives.........指令---",el);
+export function addDirective(el,name,rawName,value,arg,modifiers){    
     (el.directives || (el.directives = [])).push({name,rawName,value,arg,modifiers})
     el.plain = false
 }

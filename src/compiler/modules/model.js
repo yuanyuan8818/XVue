@@ -5,6 +5,8 @@ export default function model(el,dir,_warn){
     const tag = el.tag 
     const type = el.attrsMap.type
 
+    console.log("会进来这里的==？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？？=",);
+
     if(el.component){
         genComponentModel(el,value)
     }else if(tag === 'select'){
@@ -88,7 +90,8 @@ function genDefaultModel(el,value){
     if (needComposiion) {        
         code = `if($event.target.composingTT)return;${code}`
     }
-    addProp(el, 'value', `(${value})`);
+    console.log("?can not read value!!!!",value);
+    // addProp(el, 'value', value);
     addHandler(el, event, code, null, true);
 
 }

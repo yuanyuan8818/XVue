@@ -9,38 +9,38 @@ import {hasOwn,
 import Dep from './dep.js'          
 
 export class Observer{    
-constructor(value){
-    this.value = value        
-    this.dep = new Dep()              
-    def(value,'__ob__',this)        
-    if(Array.isArray(value)){
-        const augment = protoAugment
-        augment(value,arrayMethods,arrayKeys)
-        // 使嵌套的数据也是响应式的
-        this.observeArray(value)
-    }else{        
-        this.walk(value)
+    constructor(value){
+        this.value = value        
+        this.dep = new Dep()              
+        def(value,'__ob__',this)        
+        if(Array.isArray(value)){
+            const augment = protoAugment
+            augment(value,arrayMethods,arrayKeys)
+            // 使嵌套的数据也是响应式的
+            this.observeArray(value)
+        }else{        
+            this.walk(value)
+        }
     }
-}
-/**
- * 遍历obj, 给每个属性都设置响应式
- * @param {*} obj 
- */
-walk(obj){
-    const keys = Object.keys(obj)
-    for(let i = 0; i< keys.length; i++){
-        defineReactive(obj,keys[i],obj[keys[i]])
+    /**
+     * 遍历obj, 给每个属性都设置响应式
+     * @param {*} obj 
+     */
+    walk(obj){
+        const keys = Object.keys(obj)
+        for(let i = 0; i< keys.length; i++){
+            defineReactive(obj,keys[i],obj[keys[i]])
+        }
+    }    
+    observeArray(array){
+        for(let i = 0, l = array.length; i< l; i++){
+            observe(array[i])
+        }
     }
-}    
-observeArray(array){
-    for(let i = 0, l = array.length; i< l; i++){
-        observe(array[i])
-    }
-}
 }
 
 function protoAugment(target,src,key){
-target.__proto__ = src
+    target.__proto__ = src
 }
 
 export function observe(value){        
@@ -73,14 +73,12 @@ export function defineReactive(obj,key,val){
         configurable: true,
         get: function reactiveGetter(){
             // const value = getter? getter.call(obj): val
-            if(Dep.target){   
-                console.log("____get ???????????",value);             
+            if(Dep.target){                                
                 dep.depend()
                 if(childOb){
                     /**
-                     * 假设 childOb = observe(a)
-                     * childOb = a.__ob__
-                     * 则以下 a.__ob__.dep.depend                     
+                     * childOb = observe(a)
+                     * childOb = a.__ob__                               
                     */
                     childOb.dep.depend()
                     // 数组的索引不是响应式的，需要为子元素手动收集依赖

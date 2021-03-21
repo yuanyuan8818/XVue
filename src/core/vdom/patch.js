@@ -6,13 +6,10 @@ import {infernoDiff} from './infernoDiff'
 const domPropsRE = /\[A-Z]|^(?:value|checked|selected|muted)$/;
 
 export function patch(prevVNode, nextVNode, container){
-    console.log("MMMMMMMMMMMMMMMMMMMMMMMMM",container);
-    console.log("你到底更新不？？");
+    
     const nextFlags = nextVNode.flags 
     const prevFlags = prevVNode.flags
-  
-    console.log("哪里走》》",prevFlags);
-    console.log("哪里走》》",nextFlags);    
+      
     // 新旧节点是同一种类型才进行比较，不是同一种类型直接替换
     if(prevFlags !== nextFlags){
         console.log(1111111)
@@ -72,9 +69,7 @@ function patchElement(prevVNode,nextVNode,container){
     // if(prevData == null && nextData == null  ){
     //     console.log("气死");
     //     return
-    // }
-
-    console.log("秒~~~啊~~~~·",nextData);
+    // }    
 
     // 新的VNodeData存在时才有必要更新
     if(nextData){
@@ -158,8 +153,7 @@ export function patchChildren(prevChildFlags,nextChildFlags,prevChildren,nextChi
     console.log("nextChildFlags",nextChildFlags);
     switch(prevChildFlags){
         // 旧的children是单个子节点，会执行该case语句块
-        case ChildrenFlags.SINGLE_VNODE: 
-        console.log('旧的children是单个子节点，会执行该case语句块');      
+        case ChildrenFlags.SINGLE_VNODE:         
             switch(nextChildFlags){
                 // 新的children也是单个子节点
                 case ChildrenFlags.SINGLE_VNODE:
@@ -207,8 +201,7 @@ export function patchChildren(prevChildFlags,nextChildFlags,prevChildren,nextChi
             }
             break
         // 旧的children是多个子节点
-        default:   
-        console.log('旧的children是多个子节点0');
+        default:           
             switch(nextChildFlags){
                 // 新的是单个子节点
                 case ChildrenFlags.SINGLE_VNODE:

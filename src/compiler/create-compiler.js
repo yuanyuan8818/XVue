@@ -31,8 +31,7 @@
             }
 
             finalOptions.warn = warn    
-            const compiled = baseCompile(template.trim(), finalOptions)   
-            console.log("嘻嘻哈哈-----", compiled);              
+            const compiled = baseCompile(template.trim(), finalOptions)                       
             return compiled
         }
         return {

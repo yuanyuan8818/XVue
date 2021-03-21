@@ -54,7 +54,7 @@ export function processAttrs(el){
                     name = name.slice(0, -(arg.length +1))
                 }                
                 addDirective(el, name, rawName, value, arg, modifiers)
-                                
+                // add                
                 // if(name === 'model'){
                 //     checkForAliasModel(el, value)
                 // }                

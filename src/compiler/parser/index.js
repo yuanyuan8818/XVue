@@ -108,9 +108,9 @@ export function parse(template,options){
             let element = createASTElement(tag,attrs,parent)
 
             // apply pre-transforms
-            for (let i = 0; i < preTransforms.length; i++) {                
-                element = preTransforms[i](element, options) || element
-            }
+            // for (let i = 0; i < preTransforms.length; i++) {                
+            //     element = preTransforms[i](element, options) || element
+            // }
 
             if(!element.processed){
                 // 如果存在v-if等，则给element添加if  elseif等属性
@@ -195,6 +195,9 @@ export function parse(template,options){
         }
 
     })
+
+    console.log("zhaodao -------------",root);
+
     return root
 }
 

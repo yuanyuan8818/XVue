@@ -5,6 +5,7 @@ export default function model(el,dir,_warn){
     const tag = el.tag 
     const type = el.attrsMap.type
 
+    
     if(el.component){
         genComponentModel(el,value)
     }else if(tag === 'select'){
@@ -13,7 +14,7 @@ export default function model(el,dir,_warn){
         genCheckboxModel(el,value)
     }else if(tag === 'input' && type == 'radio'){
         genRadioModel(el, value);
-    }else if(tag === 'input' || tag === 'textarea'){
+    }else if(tag === 'input' || tag === 'textarea'){        
         genDefaultModel(el,value)
     }else if(!isHTMLTag(tag)){
         return false
@@ -57,7 +58,7 @@ function genDefaultModel(el,value){
     if (needComposiion) {
         code = `if($event.target.composing)return;${code}`
     }
-    addProp(el, 'value', `(${value})`);
+    addProp(el, 'value', `${value}`);
     addHandler(el, event, code, null, true);
 
 }

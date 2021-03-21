@@ -23,16 +23,14 @@ function genDirectives(el,state){
         if(gen){
             needRuntime = !!gen(el,dir,state.warn)
         }
-
-        // console.log("=======成语借楼======",);
+        
         // v-model, v-show
         if(needRuntime){
             hasRuntime = true
             res += `{name:${JSON.stringify(dir.name)}, rawName:${JSON.stringify(dir.rawName)}`
-                    + `${dir.value ? `,value:(${dir.value}),expression:${JSON.stringify(dir.value)}` 
-                    : ''}` + `},`
-            
-            console.log("====111111111111=======",res);
+                    + `${dir.value ? `,value:${dir.value},expression:${JSON.stringify(dir.value)}` 
+                    : ''}` + `},`        
+            console.log("==genDirectives=======",res);
         }        
     }
 
@@ -43,8 +41,7 @@ function genDirectives(el,state){
 } 
 
 // 代码生成器： 使AST生成render函数的代码字符串
-export function generate(ast,options){
-    console.log("代码生成器==",ast);
+export function generate(ast,options){    
     const state = new CodegenState(options)        
     const code = ast ? genElement(ast,state): '_c("div")'  
     console.log("+++++++++++++++++++++",code);  
@@ -112,22 +109,21 @@ function genChildren(el,state){
 // 目标：{key: 3,ref: 'xx', id:'app', class: 'test' }
 function genData(el,state){
     let data = '{'
-
+    
     const dirs = genDirectives(el,state)    
+    console.log("====dirs",dirs);
     if(dirs){
         data += dirs + ','        
     } 
     
     if(el.key){
         data += `key:${el.key},`
-    }
-
-    // console.log("我欲癫狂---",el.props);
+    }    
 
     if(el.props){
-        data += `domProps:{${genProps(el.props)}},`
+        data += `domProps:{${genProps(el)}},`
     }
-
+    
     if(el.events){
         data += `${genHandlers(el.events,false)},`
     }
@@ -138,17 +134,16 @@ function genData(el,state){
     // if(el.attrsList){
     //     data += `attrs:{${genProps(el.attrsList)}}`
     // }
-    data = data.replace(/,$/,'') + '}'
-
-    // console.log("=========我疑惑了=============",data);
+    data = data.replace(/,$/,'') + '}'    
     return data
 }
 
-function genProps(props){
+function genProps(el){
+    const props = el.props
     let res = ''
     for(let i = 0, l = props.length; i < l; i++ ){
         const prop = props[i]
-        res += `'${prop.name}' : '${prop.value}',`
+        res += `'${prop.name}' : ${prop.value},`
     }
     return res.slice(0,-1)
 }

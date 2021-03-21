@@ -34,17 +34,14 @@
 
 
 export function genHandlers(events){
-    console.log("啥也不是=====!=====",events);
-    console.log(">>>>>>>>>>>>>");
+    console.log("=====genHandlers=====",events);    
     var res = 'on:{';
-    for(var name in events){
-        console.log("undefiend 还能执行？",events);
+    for(var name in events){        
         res += "\'" + name + "\':" + 
-              ("function($event){  console.log('@@@@@@@@@数据变更@@@@@@@@',$event); "
-                + (events[name].value) + ";}") + '.'
+              ("function($event){  console.log(' input数据变更 ',$event); "
+                +  `${events[name].value}` + ";}") + '.'
     }
 
-    console.log("_________res______________",res);
-    console.log("_____________________")
+    console.log("_________res______________",res);    
     return res.slice(0,-1) + '}'
 }

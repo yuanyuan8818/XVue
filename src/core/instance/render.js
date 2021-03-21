@@ -20,8 +20,7 @@ export function initRender(vm){
         const prevVNode = vm._vnode;        
         const parent = vm.$parent
         let parentElm = null 
-
-        console.log("————————————————————————————————————要重新更新吗？",prevVNode);
+        
         if(prevVNode == null){
             // 没有旧的VNode， 使用"mounnt"函数挂在全新的VNode
             if(!parent){

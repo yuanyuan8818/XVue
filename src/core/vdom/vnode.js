@@ -77,8 +77,7 @@ export function h(tag, data = null, children = null, chldrenDeep){
         }
     }
 
-    let childFlags = null
-    console.log("^^^^^^^^^^^^^^^^^^^^: children",children);
+    let childFlags = null    
     if(Array.isArray(children)){
         let {length} = children
         if(length == 0){
@@ -105,7 +104,6 @@ export function h(tag, data = null, children = null, chldrenDeep){
         children = createTextVNode(children + '')
     }
     
-    console.log("dddddddddd");
     let vnode = {
         _isVNode: true,
         flags,
