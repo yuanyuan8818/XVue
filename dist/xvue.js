@@ -236,7 +236,7 @@
 
         if (!this.newDepIds.has(id)) {
           this.newDepIds.add(id);
-          this.newDeps.push(id);
+          this.newDeps.push(dep);
 
           if (!this.depIds.has(id)) {
             dep.addSub(this);
@@ -272,7 +272,9 @@
         while (i--) {
           const dep = this.deps[i];
 
-          if (!this.newDepIds.has(dep.id)) ;
+          if (!this.newDepIds.has(dep.id)) {
+            dep.removeSub(this);
+          }
         }
 
         let tmp = this.depIds;

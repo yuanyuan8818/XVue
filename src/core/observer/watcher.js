@@ -62,7 +62,7 @@ export default class Watcher{
         // 避免重复收集依赖
         if(!this.newDepIds.has(id)){
             this.newDepIds.add(id)
-            this.newDeps.push(id)
+            this.newDeps.push(dep)
             if(!this.depIds.has(id)){
                 dep.addSub(this)
             }
@@ -92,7 +92,7 @@ export default class Watcher{
         while(i--){
             const dep = this.deps[i]
             if(!this.newDepIds.has(dep.id)){
-                // dep.removeSub(this)
+                dep.removeSub(this)
             }
         }
         let tmp = this.depIds
@@ -101,6 +101,7 @@ export default class Watcher{
         this.newDepIds.clear()
         tmp = this.deps
         this.deps = this.newDeps // 总是保持上一次求值中收集的Dep实例对象
+
         this.newDeps = tmp   
         this.newDeps.length = 0
     }
