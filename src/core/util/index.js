@@ -1,4 +1,7 @@
 
+// can we use __proto__?
+export const hasProto = '__proto__' in {}
+
 export function warn(msg,vm){
     console.error(`[XVue warn]: ${msg}`,warn)
 }

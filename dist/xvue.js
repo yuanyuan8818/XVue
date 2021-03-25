@@ -1164,7 +1164,7 @@
         try {
           ob = new Observer(value);
         } catch (e) {
-          console.error('[XVue: ] Observer error');
+          console.error('[XVue: ] Observer error', e);
         }
       }
 
@@ -2381,7 +2381,7 @@
             // 如果存在v-if等，则给element添加if  elseif等属性
             // structural directives
             // processIf(element)
-            // processFor(element)
+            processFor(element);
             processElement(element);
           }
 

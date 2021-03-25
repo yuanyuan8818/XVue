@@ -1,5 +1,6 @@
 import {parseHTML} from './html-parser'
 import {parseText} from './text-parser'
+import {processFor} from './processFor'
 import { 
     getAndRemoveAttr,
     getBindingAttr,
@@ -116,7 +117,7 @@ export function parse(template,options){
                 // 如果存在v-if等，则给element添加if  elseif等属性
                 // structural directives
                 // processIf(element)
-                // processFor(element)
+                processFor(element)
                 
                 processElement(element,options)
             }

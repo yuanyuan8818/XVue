@@ -7,6 +7,10 @@ import {hasOwn,
    } from '@/core/util/index'    
 // import {Dep} from './dep.js'          
 import Dep from './dep.js'          
+import {arrayMethods} from './array'
+import { hasProto } from '../util/index.js'
+
+const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
 
 export class Observer{    
     constructor(value){
@@ -14,7 +18,15 @@ export class Observer{
         this.dep = new Dep()              
         def(value,'__ob__',this)        
         if(Array.isArray(value)){
-            const augment = protoAugment
+            // 数组
+            const augment
+            if(hasProto){
+                // 浏览器支持 __proto__
+                augment = protoAugment
+            }else{
+                // ie11以下不支持__proto__
+                augment = copyAugment
+            }             
             augment(value,arrayMethods,arrayKeys)
             // 使嵌套的数据也是响应式的
             this.observeArray(value)
@@ -39,9 +51,22 @@ export class Observer{
     }
 }
 
-function protoAugment(target,src,key){
+// 使target的原型指向 arrayMethods
+// target执行 push splice等方法时，被arrayMethods拦截
+function protoAugment(target,src){
     target.__proto__ = src
 }
+
+/**
+ * 不支持__proto__时,将arrayMethods的方法定义成target的不
+ */
+function copyAugment(target,src,keys){
+    for(let i = 0; i< keys.length; i++){
+        const key = keys[i]
+        def(target,key,src[key])
+    }
+}
+
 
 export function observe(value){        
 // if(!isObject(value) || value instanceof VNode){
@@ -54,7 +79,7 @@ export function observe(value){
         try{
             ob = new Observer(value)
         }catch(e){
-            console.error('[XVue: ] Observer error')
+            console.error('[XVue: ] Observer error',e)
         }
         
     }    
