@@ -19,7 +19,7 @@ export class Observer{
         def(value,'__ob__',this)        
         if(Array.isArray(value)){
             // 数组
-            const augment
+            let augment
             if(hasProto){
                 // 浏览器支持 __proto__
                 augment = protoAugment

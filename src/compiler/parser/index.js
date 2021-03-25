@@ -1,6 +1,6 @@
 import {parseHTML} from './html-parser'
 import {parseText} from './text-parser'
-import {processFor} from './processFor'
+import {processFor} from './processFor/index'
 import { 
     getAndRemoveAttr,
     getBindingAttr,

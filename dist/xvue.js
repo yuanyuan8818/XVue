@@ -21,6 +21,8 @@
       };
     }
 
+    // can we use __proto__?
+    const hasProto = ('__proto__' in {});
     function warn$2(msg, vm) {
       console.error(`[XVue warn]: ${msg}`, warn$2);
     }
@@ -1111,6 +1113,32 @@
     //     Object.defineProperty(target, key, sharedPropertyDefinition);
     // }
 
+    const mutationMethods = ['push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse'];
+    const arrayMethods = Object.create(Array.prototype); // 重写数组的方法，缓存原来的方法，在内部调用
+
+    mutationMethods.forEach(method => {
+      def(arrayMethods, method, function mutator(...args) {
+        const value = Array.prototype[method].apply(this, args);
+        let ob = __ob__;
+        let inserted;
+
+        switch (method) {
+          case 'push':
+          case 'push':
+            inserted = args;
+            break;
+
+          case 'splice':
+            inserted = args.slice(2);
+        }
+
+        if (inserted) ob.observeArray(inserted);
+        ob.dep.notify();
+        return value;
+      }, false);
+    });
+
+    const arrayKeys = Object.getOwnPropertyNames(arrayMethods);
     class Observer {
       constructor(value) {
         this.value = value;
@@ -1118,7 +1146,17 @@
         def(value, '__ob__', this);
 
         if (Array.isArray(value)) {
-          const augment = protoAugment;
+          // 数组
+          let augment;
+
+          if (hasProto) {
+            // 浏览器支持 __proto__
+            augment = protoAugment;
+          } else {
+            // ie11以下不支持__proto__
+            augment = copyAugment;
+          }
+
           augment(value, arrayMethods, arrayKeys); // 使嵌套的数据也是响应式的
 
           this.observeArray(value);
@@ -1146,10 +1184,22 @@
         }
       }
 
-    }
+    } // 使target的原型指向 arrayMethods
+    // target执行 push splice等方法时，被arrayMethods拦截
 
-    function protoAugment(target, src, key) {
+    function protoAugment(target, src) {
       target.__proto__ = src;
+    }
+    /**
+     * 不支持__proto__时,将arrayMethods的方法定义成target的不
+     */
+
+
+    function copyAugment(target, src, keys) {
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        def(target, key, src[key]);
+      }
     }
 
     function observe(value) {
@@ -1493,7 +1543,7 @@
       }
     }
 
-    function getAndRemoveAttr(el, name, removeFromMap) {
+    function getAndRemoveAttr$1(el, name, removeFromMap) {
       let val;
       /**
        * 
@@ -1527,7 +1577,7 @@
     }
     function getBindingAttr(el, name, getStatic) {
       // console.log("平平无奇仙女生日---",el,name);
-      const dynamicValue = getAndRemoveAttr(el, ':' + name) || getAndRemoveAttr(el, 'v-bind:' + name); // console.log("&这到底有啥区别呢/。?&",dynamicValue);
+      const dynamicValue = getAndRemoveAttr$1(el, ':' + name) || getAndRemoveAttr$1(el, 'v-bind:' + name); // console.log("&这到底有啥区别呢/。?&",dynamicValue);
 
       if (dynamicValue != null) {
         // :key 或者v-bind:key 存在    
@@ -1536,7 +1586,7 @@
         //进入此说明绑定属性值失败 el上不存在key属性值
         // :key 或者v-bind不存在时 dynamicValue 是undefined，进入这里
         //当第三个参数不传递时, 默认该elseif存在
-        const staticValue = getAndRemoveAttr(el, name); // console.log("&这到底有啥区别呢/。?&---staticValue-----",staticValue);
+        const staticValue = getAndRemoveAttr$1(el, name); // console.log("&这到底有啥区别呢/。?&---staticValue-----",staticValue);
 
         if (staticValue != null) {
           //返回 非绑定属性值请用JSON.stringigy
@@ -1546,7 +1596,7 @@
     }
 
     function transformNode$1(el, options) {
-      const staticClass = getAndRemoveAttr(el, 'class');
+      const staticClass = getAndRemoveAttr$1(el, 'class');
 
       if (staticClass) {
         el.staticClass = JSON.stringify(staticClass);
@@ -1565,7 +1615,7 @@
     };
 
     function transformNode(el, options) {
-      const staticStyle = getAndRemoveAttr(el, 'style');
+      const staticStyle = getAndRemoveAttr$1(el, 'style');
 
       if (staticStyle) {
         el.staticKeys = JSON.stringify(style$1.parseStyleText(staticStyle));
@@ -1732,6 +1782,38 @@
       }
     }
 
+    function getAndRemoveAttr(el, name, removeFromMap) {
+      let val;
+      /**
+       * 
+       * undefined == null 为true          
+       */
+      // console.log("查看 v-else",name);
+      // console.log("妈咪妈咪轰",el.attrsMap[name]);
+
+      if ((val = el.attrsMap[name]) != null) {
+        // console.log("jejejda =======",val);
+        const list = el.attrsList;
+
+        for (let i = 0, l = list.length; i < l; i++) {
+          if (list[i].name === name) {
+            /**
+             * splice()从数组中 添加/删除 项目，然后返回被删除的项目。改变原数组
+             */
+            list.splice(i, 1);
+            break;
+          }
+        }
+      }
+
+      if (removeFromMap) {
+        delete el.attrsMap[name];
+      }
+      /**返回该属性name 对应的 value */
+
+
+      return val;
+    }
     function addHandler(el, name, value, modifiers, important, warn, range, dynamic) {
       modifiers = modifiers || emptyObject;
       modifiers = modifiers || emptyObject;
@@ -2209,6 +2291,14 @@
         expression: tokens.join('+'),
         tokens: rawTokens
       };
+    }
+
+    function processFor(el) {
+      let exp;
+
+      if (exp = getAndRemoveAttr(el, 'v-for')) {
+        console.log("你瞧见我做啥了吗", exp);
+      }
     }
 
     const dirRE = /^v-|^@|^:/; // const modifierRE = /\.[^.]+/g
