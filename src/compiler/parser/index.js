@@ -33,7 +33,7 @@ function makeAttrsMap(attrs){
 
 function processElement(element,options){
     processAttrs(element)
-
+    processKey(element)
 }
 
 const currentParent = null

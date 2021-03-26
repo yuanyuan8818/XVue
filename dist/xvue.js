@@ -501,7 +501,6 @@
         ret = [];
       }
 
-      console.log("瞧瞧看看你++++++++", ret);
       return ret;
     }
 
@@ -1580,7 +1579,7 @@
 
       return val;
     }
-    function getBindingAttr(el, name, getStatic) {
+    function getBindingAttr$1(el, name, getStatic) {
       // console.log("平平无奇仙女生日---",el,name);
       const dynamicValue = getAndRemoveAttr$1(el, ':' + name) || getAndRemoveAttr$1(el, 'v-bind:' + name); // console.log("&这到底有啥区别呢/。?&",dynamicValue);
 
@@ -1607,7 +1606,7 @@
         el.staticClass = JSON.stringify(staticClass);
       }
 
-      const classBinding = getBindingAttr(el, 'class', false);
+      const classBinding = getBindingAttr$1(el, 'class', false);
 
       if (classBinding) {
         el.classBinding = classBinding;
@@ -1626,7 +1625,7 @@
         el.staticKeys = JSON.stringify(style$1.parseStyleText(staticStyle));
       }
 
-      const styleBinding = getBindingAttr(el, 'style', false
+      const styleBinding = getBindingAttr$1(el, 'style', false
       /* getStatic */
       );
 
@@ -1818,6 +1817,25 @@
 
 
       return val;
+    }
+    function getBindingAttr(el, name, getStatic) {
+      // console.log("平平无奇仙女生日---",el,name);
+      const dynamicValue = getAndRemoveAttr(el, ':' + name) || getAndRemoveAttr(el, 'v-bind:' + name); // console.log("&这到底有啥区别呢/。?&",dynamicValue);
+
+      if (dynamicValue != null) {
+        // :key 或者v-bind:key 存在    
+        return parseFilters(dynamicValue);
+      } else if (getStatic !== false) {
+        //进入此说明绑定属性值失败 el上不存在key属性值
+        // :key 或者v-bind不存在时 dynamicValue 是undefined，进入这里
+        //当第三个参数不传递时, 默认该elseif存在
+        const staticValue = getAndRemoveAttr(el, name); // console.log("&这到底有啥区别呢/。?&---staticValue-----",staticValue);
+
+        if (staticValue != null) {
+          //返回 非绑定属性值请用JSON.stringigy
+          return JSON.stringify(staticValue);
+        }
+      }
     }
     function addHandler(el, name, value, modifiers, important, warn, range, dynamic) {
       modifiers = modifiers || emptyObject;
@@ -2369,6 +2387,27 @@
       }
     }
 
+    function processKey(el) {
+      const exp = getBindingAttr(el, 'key');
+
+      if (exp) {
+        if (el.tag == 'template') {
+          warn(`<template> cannot be keyed.Place the key on real elements instead.`);
+        }
+
+        if (el.for) {
+          const iterator = el.iterator2 || el.iterator1;
+          const parent = el.parent;
+
+          if (iterator && iterator == exp && parent && parent.tag == 'transition-group') {
+            warn(`Do not use v-for index as key on <transition-group> children,`);
+          }
+        }
+
+        el.key = exp;
+      }
+    }
+
     const dirRE = /^v-|^@|^:/; // const modifierRE = /\.[^.]+/g
 
     const modifierRE = /\.[^.\]]+(?=[^\]]*$)/g;
@@ -2458,6 +2497,7 @@
 
     function processElement(element, options) {
       processAttrs(element);
+      processKey(element);
     }
     function createASTElement(tag, attrs, parent) {
       let ele = {
@@ -2766,14 +2806,12 @@
     //     }
     // }
     function genHandlers(events) {
-      console.log("=====genHandlers=====", events);
       var res = 'on:{';
 
       for (var name in events) {
         res += "\'" + name + "\':" + ("function($event){  console.log(' input数据变更 ',$event); " + `${events[name].value}` + ";}") + '.';
       }
 
-      console.log("_________res______________", res);
       return res.slice(0, -1) + '}';
     }
 
@@ -2936,12 +2974,11 @@
     function genText(text) {
       return `_v(${text.type === 2 ? text.expression : JSON.stringify(text.text)})`;
     }
-    function genFor(el, state, altGen, altHelper) {
+    function genFor(el, state) {
       const exp = el.for;
       const alias = el.alias;
       const iteractor1 = el.iteractor1 ? `,${el.iteractor1}` : '';
       const iteractor2 = el.iteractor2 ? `,${el.iteractor2}` : '';
-      console.log("el.key。。？", el.key);
 
       if (el.tag !== 'slot' && el.tag !== 'template' && !el.key) {
         console.error(`<${el.tag} v-for="${alias} in ${exp}">: component lists rendered with ` + `v-for should have explicit keys. `);
@@ -2949,7 +2986,7 @@
 
       el.forProcessed = true; // avoid recursion
 
-      return `${altHelper || '_l'}(${exp},` + `function(${alias}${iteractor1}${iteractor2}){` + `return ${(altGen || genElement)(el, state)}` + '})';
+      return `${'_l'}(${exp},` + `function(${alias}${iteractor1}${iteractor2}){` + `return ${genElement(el, state)}` + '})';
     }
 
     // creatCompilerCreator根据baseCompile创建出不同平台编译器

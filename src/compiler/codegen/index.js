@@ -162,13 +162,12 @@ export function genText(text){
     return `_v(${text.type === 2 ? text.expression: JSON.stringify(text.text)})`
 }
 
-export function genFor(el,state,altGen,altHelper){
+export function genFor(el,state){
     const exp = el.for
     const alias = el.alias
     const iteractor1 = el.iteractor1 ? `,${el.iteractor1}` : ''
     const iteractor2 = el.iteractor2 ? `,${el.iteractor2}` : ''
-
-    console.log("el.key。。？",el.key);
+    
     if(el.tag !== 'slot' && el.tag !== 'template' && !el.key){
         console.error(
             `<${el.tag} v-for="${alias} in ${exp}">: component lists rendered with ` +
@@ -178,8 +177,8 @@ export function genFor(el,state,altGen,altHelper){
 
     el.forProcessed = true // avoid recursion
 
-    return `${altHelper || '_l'}(${exp},` + 
+    return `${'_l'}(${exp},` + 
        `function(${alias}${iteractor1}${iteractor2}){` +
-         `return ${(altGen || genElement)(el,state)}` +
+         `return ${genElement(el,state)}` +
          '})'
 }

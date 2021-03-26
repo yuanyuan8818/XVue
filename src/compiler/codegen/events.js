@@ -33,15 +33,13 @@
 // }
 
 
-export function genHandlers(events){
-    console.log("=====genHandlers=====",events);    
+export function genHandlers(events){    
     var res = 'on:{';
     for(var name in events){        
         res += "\'" + name + "\':" + 
               ("function($event){  console.log(' input数据变更 ',$event); "
                 +  `${events[name].value}` + ";}") + '.'
     }
-
-    console.log("_________res______________",res);    
+    
     return res.slice(0,-1) + '}'
 }
