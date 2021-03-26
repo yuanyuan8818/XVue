@@ -1,8 +1,8 @@
 (function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('@/util/index.js'), require('@/util/options.js'), require('src/core/util'), require('web/util/style')) :
-    typeof define === 'function' && define.amd ? define(['@/util/index.js', '@/util/options.js', 'src/core/util', 'web/util/style'], factory) :
-    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.XVue = factory(global.index_js, null, global.util, global.style$1));
-}(this, (function (index_js, options_js, util, style$1) { 'use strict';
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('@/util/index.js'), require('@/util/options.js'), require('src/core/util'), require('web/util/style'), require('..')) :
+    typeof define === 'function' && define.amd ? define(['@/util/index.js', '@/util/options.js', 'src/core/util', 'web/util/style', '..'], factory) :
+    (global = typeof globalThis !== 'undefined' ? globalThis : global || self, global.XVue = factory(global.index_js, null, global.util, global.style$1, global.__));
+}(this, (function (index_js, options_js, util, style$1, __) { 'use strict';
 
     const bailRE = /[^\w.$]/;
     function parsePath(path) {
@@ -501,6 +501,7 @@
         ret = [];
       }
 
+      console.log("瞧瞧看看你++++++++", ret);
       return ret;
     }
 
@@ -537,6 +538,19 @@
     }
     function toString(val) {
       return val == null ? '' : typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val);
+    }
+    /**
+     * Mix properties into target object
+     * @param {*} target 
+     * @param {*} _from 
+     */
+
+    function extend(target, _from) {
+      for (let prop in _from) {
+        target[prop] = _from[prop];
+      }
+
+      return target;
     }
 
     function installRenderHelpers(target) {
@@ -786,26 +800,18 @@
       const prevFlags = prevVNode.flags; // 新旧节点是同一种类型才进行比较，不是同一种类型直接替换
 
       if (prevFlags !== nextFlags) {
-        console.log(1111111);
         replaceVNode(prevVNode, nextVNode, container);
       } else if (nextFlags && VNodeFlags.ELEMENT) {
-        console.log(222222);
         patchElement(prevVNode, nextVNode, container);
       } else if (nextFlags & VNodeFlags.COMPONENT) {
-        console.log(3333333333);
         patchComponent(prevVNode, nextVNode, container);
       } else if (nextFlags & VNodeFlags.TEXT) {
-        console.log(444444444);
         patchText(prevVNode, nextVNode);
       } else if (nextFlags & VNodeFlags.FRAGMENT) {
-        console.log(555555);
         patchFragment(prevVNode, nextVNode, container);
       } else if (nextFlags & VNodeFlags.PORTAL) {
-        console.log(66);
         patchPortal(prevVNode, nextVNode);
       }
-
-      console.log("哪里走》》");
     }
 
     function replaceVNode(prevVNode, nextVNode, container) {
@@ -830,9 +836,7 @@
 
 
     function patchElement(prevVNode, nextVNode, container) {
-      // 如果新旧VNode描述的是不同标签，调用replaceVNode，新节点替换旧节点
-      console.log("新旧；；；", prevVNode, nextVNode);
-
+      // 如果新旧VNode描述的是不同标签，调用replaceVNode，新节点替换旧节点    
       if (prevVNode.tag !== nextVNode.tag) {
         replaceVNode(prevVNode, nextVNode, container);
         return;
@@ -840,11 +844,7 @@
 
       const el = nextVNode.el = prevVNode.el;
       const prevData = prevVNode.data;
-      const nextData = nextVNode.data; // if(prevData == null && nextData == null  ){
-      //     console.log("气死");
-      //     return
-      // }    
-      // 新的VNodeData存在时才有必要更新
+      const nextData = nextVNode.data; // 新的VNodeData存在时才有必要更新
 
       if (nextData) {
         for (let key in nextData) {
@@ -1045,8 +1045,7 @@
           }
         } else {
           if (vnode) {
-            //有旧的VNode, 则调用'patch'函数打补丁
-            console.log("打补吗？？？？？？？？！！！！！！！！！！！！！！", patch);
+            //有旧的VNode, 则调用'patch'函数打补丁                
             patch(prevVNode, vnode, container); // container.vnode = vnode
 
             vm._vnode = vnode;
@@ -1080,6 +1079,12 @@
       installRenderHelpers(XVue.prototype);
     }
     function mount$1(vnode, container, refVNode) {
+      if (Array.isArray(vnode)) {
+        for (let i = 0; i < vnode.length; i++) {
+          mount$1(vnode[i], container, refVNode);
+        }
+      }
+
       const flags = vnode.flags;
 
       if (flags & VNodeFlags.ELEMENT) {
@@ -2293,11 +2298,74 @@
       };
     }
 
+    // 匹配  v-for="(item,index) in Arr" 并捕获 (item,index) 和 Arr
+
+    const forAliasRE = /([^]*?)\s+(?:in|of)\s+([^]*)/; // v-for="(item,index,key) in Arr"   ?匹配前面的表达式 0次或1次
+
+    const forIteratorRE = /,([^,\}\]]*)(?:([^,\}\]]*))?$/;
+    const stripParensRE = /^\(|\)$/g;
     function processFor(el) {
       let exp;
 
       if (exp = getAndRemoveAttr(el, 'v-for')) {
-        console.log("你瞧见我做啥了吗", exp);
+        const res = parseFor(exp);
+
+        if (res) {
+          extend(el, res);
+        } else {
+          warn(`Invalid v-for expression: ${exp}`);
+        }
+      }
+    }
+    /**
+     * eg: exp =  (item,index,key) in Arr 
+     * 则 inMatch : ['(item,index,key) in Arr', '(item,index,key)', 'Arr']
+     * 则 alias = item,index,key
+     * 则 interactorMatch = [',index,key']
+     * */
+
+    function parseFor(exp) {
+      const inMatch = exp.match(forAliasRE);
+      if (!inMatch) return;
+      const res = {};
+      res.for = inMatch[2].trim();
+      const alias = inMatch[1].trim().replace(stripParensRE, '');
+      const iteractorMatch = alias.match(forIteratorRE);
+
+      if (iteractorMatch) {
+        res.alias = alias.replace(forIteratorRE, '').trim(); // res.alias = item
+
+        res.iteractor1 = iteractorMatch[1].trim();
+
+        if (iteractorMatch[2]) {
+          res.iteractor2 = iteractorMatch[2].trim();
+        }
+      } else {
+        res.alias = alias;
+      }
+
+      return res;
+    }
+
+    function processIf(el) {
+      const exp = getAndRemoveAttr(el, 'v-if');
+
+      if (exp) {
+        el.if = exp;
+        __.addIfCondition(el, {
+          exp: exp,
+          block: el
+        });
+      } else {
+        if (getAndRemoveAttr(el, 'v-else') != null) {
+          el.else = true;
+        }
+
+        const elseif = getAndRemoveAttr(el, 'v-else-if');
+
+        if (elseif) {
+          el.elseif = elseif;
+        }
       }
     }
 
@@ -2472,6 +2540,7 @@
             // structural directives
             // processIf(element)
             processFor(element);
+            processIf(element);
             processElement(element);
           }
 
@@ -2748,6 +2817,7 @@
 
 
     function generate(ast, options) {
+      console.log(" codegen 入口----", ast);
       const state = new CodegenState(options);
       const code = ast ? genElement(ast, state) : '_c("div")';
       console.log("+++++++++++++++++++++", code);
@@ -2813,7 +2883,6 @@
     function genData(el, state) {
       let data = '{';
       const dirs = genDirectives(el, state);
-      console.log("====dirs", dirs);
 
       if (dirs) {
         data += dirs + ',';
@@ -2872,16 +2941,15 @@
       const alias = el.alias;
       const iteractor1 = el.iteractor1 ? `,${el.iteractor1}` : '';
       const iteractor2 = el.iteractor2 ? `,${el.iteractor2}` : '';
+      console.log("el.key。。？", el.key);
 
       if (el.tag !== 'slot' && el.tag !== 'template' && !el.key) {
-        state.warn(`<${el.tag} v-for="${alias} in ${exp}">: component lists rendered with ` + `v-for should have explicit keys. ` + `See https://vuejs.org/guide/list.html#key for more info.`, el.rawAttrsMap['v-for'], true
-        /* tip */
-        );
+        console.error(`<${el.tag} v-for="${alias} in ${exp}">: component lists rendered with ` + `v-for should have explicit keys. `);
       }
 
       el.forProcessed = true; // avoid recursion
 
-      return `${altHelper || '_l'}((${exp})),` + `function(${alias}${iteractor1}${iteractor2}){` + `return ${(altGen || genElement)(el, state)}` + '})';
+      return `${altHelper || '_l'}(${exp},` + `function(${alias}${iteractor1}${iteractor2}){` + `return ${(altGen || genElement)(el, state)}` + '})';
     }
 
     // creatCompilerCreator根据baseCompile创建出不同平台编译器

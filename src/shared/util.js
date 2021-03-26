@@ -36,3 +36,15 @@ export function toString(val) {
         JSON.stringify(val, null, 2) :
         String(val)
 }
+
+/**
+ * Mix properties into target object
+ * @param {*} target 
+ * @param {*} _from 
+ */
+ export function extend(target,_from){
+    for(let prop in _from){
+        target[prop] = _from[prop]
+    }
+    return target
+}

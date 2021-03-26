@@ -11,27 +11,19 @@ export function patch(prevVNode, nextVNode, container){
     const prevFlags = prevVNode.flags
       
     // 新旧节点是同一种类型才进行比较，不是同一种类型直接替换
-    if(prevFlags !== nextFlags){
-        console.log(1111111)
+    if(prevFlags !== nextFlags){     
         replaceVNode(prevVNode, nextVNode, container)
-    }else if(nextFlags && VNodeFlags.ELEMENT){
-        console.log(222222)
+    }else if(nextFlags && VNodeFlags.ELEMENT){        
         patchElement(prevVNode,nextVNode,container)
-    }else if(nextFlags & VNodeFlags.COMPONENT){
-        console.log(3333333333)
+    }else if(nextFlags & VNodeFlags.COMPONENT){        
         patchComponent(prevVNode,nextVNode,container)
-    }else if(nextFlags & VNodeFlags.TEXT ){
-        console.log(444444444)
+    }else if(nextFlags & VNodeFlags.TEXT ){    
         patchText(prevVNode, nextVNode)
-    }else if(nextFlags & VNodeFlags.FRAGMENT){
-        console.log(555555)
+    }else if(nextFlags & VNodeFlags.FRAGMENT){        
         patchFragment(prevVNode,nextVNode,container)
-    }else if(nextFlags & VNodeFlags.PORTAL){
-        console.log(66)
+    }else if(nextFlags & VNodeFlags.PORTAL){        
         patchPortal(prevVNode,nextVNode)
-    }
-    
-    console.log("哪里走》》");
+    }        
 }
 
 function replaceVNode(prevVNode,nextVNode,container){
@@ -53,8 +45,7 @@ function patchText(prevVNode,nextVNode){
  * patch 元素节点
 */
 function patchElement(prevVNode,nextVNode,container){
-    // 如果新旧VNode描述的是不同标签，调用replaceVNode，新节点替换旧节点
-    console.log("新旧；；；",prevVNode,nextVNode);
+    // 如果新旧VNode描述的是不同标签，调用replaceVNode，新节点替换旧节点    
     if(prevVNode.tag !== nextVNode.tag){
         replaceVNode(prevVNode,nextVNode,container)
         return
@@ -64,12 +55,6 @@ function patchElement(prevVNode,nextVNode,container){
     
     const prevData = prevVNode.data 
     const nextData = nextVNode.data     
-
-    
-    // if(prevData == null && nextData == null  ){
-    //     console.log("气死");
-    //     return
-    // }    
 
     // 新的VNodeData存在时才有必要更新
     if(nextData){

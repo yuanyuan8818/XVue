@@ -11,8 +11,7 @@
         <div>我的名字{{name}},我正在学习中！</div>             
         <input type="text" v-model="phone">
         <span>{{phone}}</span>
-
-        <div>处理v-for 及 key</div>        
+        <div v-for="(item,index) in arrs" :key="index">{{item}}</div>        
     </div>
     <script>            
         let vm = new XVue({

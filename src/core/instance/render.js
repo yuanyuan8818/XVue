@@ -39,8 +39,7 @@ export function initRender(vm){
             }            
         }else{
             if(vnode){
-                //有旧的VNode, 则调用'patch'函数打补丁
-                console.log("打补吗？？？？？？？？！！！！！！！！！！！！！！",patch);
+                //有旧的VNode, 则调用'patch'函数打补丁                
                 patch(prevVNode,vnode,container)            
                 // container.vnode = vnode
                 vm._vnode = vnode 
@@ -57,7 +56,7 @@ export function initRender(vm){
 
     XVue.prototype._render = function(){
         const vm = this;
-        const { render } = vm.$options
+        const { render } = vm.$options        
         let vnode;
         try{            
             vnode = render.call(vm)            
@@ -74,6 +73,11 @@ export function initRender(vm){
 
 
 export function mount(vnode,container,refVNode){
+    if(Array.isArray(vnode)){
+        for(let i = 0; i < vnode.length; i++){
+            mount(vnode[i],container,refVNode)
+        }
+    }
     const flags = vnode.flags    
     if(flags & VNodeFlags.ELEMENT){        
         // 挂载普通标签        

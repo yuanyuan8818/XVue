@@ -42,6 +42,7 @@ function genDirectives(el,state){
 
 // 代码生成器： 使AST生成render函数的代码字符串
 export function generate(ast,options){    
+    console.log(" codegen 入口----",ast);
     const state = new CodegenState(options)        
     const code = ast ? genElement(ast,state): '_c("div")'  
     console.log("+++++++++++++++++++++",code);  
@@ -110,8 +111,7 @@ function genChildren(el,state){
 function genData(el,state){
     let data = '{'
     
-    const dirs = genDirectives(el,state)    
-    console.log("====dirs",dirs);
+    const dirs = genDirectives(el,state)        
     if(dirs){
         data += dirs + ','        
     } 
@@ -168,19 +168,17 @@ export function genFor(el,state,altGen,altHelper){
     const iteractor1 = el.iteractor1 ? `,${el.iteractor1}` : ''
     const iteractor2 = el.iteractor2 ? `,${el.iteractor2}` : ''
 
+    console.log("el.key。。？",el.key);
     if(el.tag !== 'slot' && el.tag !== 'template' && !el.key){
-        state.warn(
+        console.error(
             `<${el.tag} v-for="${alias} in ${exp}">: component lists rendered with ` +
-            `v-for should have explicit keys. ` +
-            `See https://vuejs.org/guide/list.html#key for more info.`,
-            el.rawAttrsMap['v-for'],
-            true /* tip */
+            `v-for should have explicit keys. `                                   
           )
     }
 
     el.forProcessed = true // avoid recursion
 
-    return `${altHelper || '_l'}((${exp})),` + 
+    return `${altHelper || '_l'}(${exp},` + 
        `function(${alias}${iteractor1}${iteractor2}){` +
          `return ${(altGen || genElement)(el,state)}` +
          '})'

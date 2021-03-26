@@ -1,6 +1,8 @@
 import {parseHTML} from './html-parser'
 import {parseText} from './text-parser'
 import {processFor} from './processFor/index'
+import {processIf} from './processIf/index'
+import {processKey} from './processKey/index'
 import { 
     getAndRemoveAttr,
     getBindingAttr,
@@ -118,6 +120,7 @@ export function parse(template,options){
                 // structural directives
                 // processIf(element)
                 processFor(element)
+                processIf(element)
                 
                 processElement(element,options)
             }

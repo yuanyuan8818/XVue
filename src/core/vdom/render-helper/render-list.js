@@ -26,5 +26,6 @@ export function renderList(val,render){
     if(ret == null){
         ret = []
     }
+    console.log("瞧瞧看看你++++++++",ret);
     return ret
 }

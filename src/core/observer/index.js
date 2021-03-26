@@ -67,7 +67,6 @@ function copyAugment(target,src,keys){
     }
 }
 
-
 export function observe(value){        
 // if(!isObject(value) || value instanceof VNode){
 //     return 
@@ -85,7 +84,6 @@ export function observe(value){
     }    
     return ob
 }
-
 
 export function defineReactive(obj,key,val){
     const dep = new Dep()
