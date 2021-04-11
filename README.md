@@ -1,6 +1,12 @@
 
 ## XVue 
-以学习Vue源码为目的实现一个MVVM框架 
+以学习Vue源码为目的实现一个基于web平台的MVVM框架 
+
+## 开始
+```
+npm install
+npm run dev
+```
 
 ## 文件目录
 ```
@@ -89,27 +95,46 @@ patch只会发生在同类型的VNode上，否则直接替换。
 更新VnodeData: patchData;
 更新children: patchChildren; 
 
-对比新旧子节点需分情况讨论：
-
+对比新旧子节点需分情况讨论(diff算法)：
 1. 旧节点只有一个子节点
-    1.1 新节点只有一个子节点
-    1.2 新节点没有子节点
-    1.3 新节点有多个子节点
+    - 1.1 新节点只有一个子节点 
+    ```javascript
+    // 递归地patch两个新旧子节点
+     patch(prevChildren, nextChildren, container) 
+    ```
+    - 1.2 新节点没有子节点
+    ```javascript
+    // 移除旧节点的子节点
+     container.removeChild(prevChildren.el) 
+    ```
+    - 1.3 新节点有多个子节点
+    ```javascript
+    containder.removeChild(prevChildren.el)
+    for(let i = 0; i < nextChlidren.length; i++>){
+        mount(nextChildren[i],container)
+    }
+    ```
 
 2. 旧节点没有子节点
-    2.1 新节点只有一个子节点
-    2.2 新节点没有子节点
-    2.3 新节点有多个子节点
+    - 2.1 新节点只有一个子节点
+    - 2.2 新节点没有子节点
+    - 2.3 新节点有多个子节点
+    
 
 3. 旧节点有多个子节点
-    3.1 新节点只有一个子节点
-    3.2 新节点没有子节点
-    3.3 新节点有多个子节点
+    - 3.1 新节点只有一个子节点
+    - 3.2 新节点没有子节点
+    - 3.3 新节点有多个子节点
+    ``` 核心diff算法```    
 
 
-#### Diff算法
+#### 核心的Diff算法
+首先去除相同的前缀和后缀, 对于中间的children，首先判断是否需要移动(借助keyIndex判断)，接着再通过求解最长递增子序列尽可能少地移动节点
+
+source: 用来存储新children中的节点在旧children中的位置
+keyIndex: 索引表, 键: 新节点的key, 值: 新节点的位置索引
 
 
 ## 参考文献
-Vue技术内幕
-渲染器 
+[Vue技术内幕](http://caibaojian.com/vue-design/art/)
+[渲染器](http://hcysun.me/vue-design/zh/renderer-diff.html#%E5%88%A4%E6%96%AD%E6%98%AF%E5%90%A6%E9%9C%80%E8%A6%81%E8%BF%9B%E8%A1%8C-dom-%E7%A7%BB%E5%8A%A8)

@@ -15,7 +15,11 @@ export function compareDoubleEnd(prevChildren,nextChildren,container){
     const oldEndVnode = prevChildren[oldEndIdx]
 
     while(oldStartIdx < oldEndIdx && newStartIdx < newEndIdx){
-        if(oldStartVnode.key == newStartVnode.key){
+        if(!oldStartVnode){
+            oldStartVnode = prevChildren[++oldStartVnode]
+        }else if(!oldEndVnode){
+            oldEndVnode = prevChildren[--oldEndVnode]
+        }else if(oldStartVnode.key == newStartVnode.key){
             patch(oldStartVnode,newStartVnode,container)
             oldStartVnode = prevChildren[++oldStartIdx]
             newStartVnode = nextChildren[++newStartIdx]
@@ -25,10 +29,14 @@ export function compareDoubleEnd(prevChildren,nextChildren,container){
             newEndVnode = prevChildren[--newEndIdx]
         }else if(oldStartVnode.key == newEndVnode.key){
             patch(oldStartVnode,newEndVnode,container)
+            // 旧头和新尾相同，说明旧头被移动到了“最后”
+            container.insertBefore(oldStartVnode.el,oldEndVnode.el.nextSibiling)
             oldStartVnode = prevChildren[++oldStartIdx]
             newEndVnode = nextChildren[--newEndIdx]
         }else if(oldEndVnode.key == newStartVnode.key){
             patch(oldEndVnode,newStartVnode,container)
+            // 旧尾与新头相同，说明旧尾被移动到了“最前”
+            container.insertBefore(oldEndVnode.el, oldStartVnode.el)
             oldEndVnode = prevChildren[--oldEndIdx]
             newStartVnode = nextChildren[++newStartIdx]
         }else{
@@ -50,7 +58,7 @@ export function compareDoubleEnd(prevChildren,nextChildren,container){
     if(oldStartIdx > oldEndIdx){
         // 旧节点先遍历完，需挂载剩余的新节点
         for(let i = newStartIdx; i >= newEndIdx ; i--){            
-            mount(nextChildren[i],container,oldStartVnode.el)
+            mount(nextChildren[i],container,false, oldStartVnode.el)
         }
 
     }
